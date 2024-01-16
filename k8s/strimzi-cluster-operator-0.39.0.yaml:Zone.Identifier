@@ -1,0 +1,3 @@
+[ZoneTransfer]
+ZoneId=3
+HostUrl=https://objects.githubusercontent.com/github-production-release-asset-2e65be/58194180/2d5ec7a3-f907-4c7f-9964-2983f117c64b?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20231231%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20231231T192809Z&X-Amz-Expires=300&X-Amz-Signature=7b076897ba076c8db6cc47b2c7145bb8e2c7aa388b906e2730df0215e9b6388f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=58194180&response-content-disposition=attachment%3B%20filename%3Dstrimzi-cluster-operator-0.39.0.yaml&response-content-type=application%2Foctet-stream

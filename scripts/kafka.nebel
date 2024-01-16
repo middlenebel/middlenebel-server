@@ -1,0 +1,19 @@
+//Control start
+Debug on
+Platform: TallerKafkaObject
+    DockerDesktop.
+    K8S:
+        CreateNamespaces: kafkanebel.
+        namespace kafkanebel
+        Deployment: websensi-kafka
+            image 'nginx:1.14.2'
+            containerPort 81
+        .
+    .
+    K8S-Kafka: kafka1
+        namespace kafkanebel
+        PortForward
+        KProducer
+        KConsumer
+    .
+.
