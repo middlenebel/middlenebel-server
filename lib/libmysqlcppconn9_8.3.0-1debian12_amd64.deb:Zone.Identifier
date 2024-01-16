@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://dev.mysql.com/
+HostUrl=https://cdn.mysql.com//Downloads/Connector-C++/libmysqlcppconn9_8.3.0-1debian12_amd64.deb

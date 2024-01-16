@@ -1,0 +1,192 @@
+
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+
+#include <boost/asio.hpp>
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+#include "inc/Core.hpp"
+#include "inc/Component.hpp"
+#include "inc/DockerDesktop.hpp"
+
+namespace beast = boost::beast;     // from <boost/beast.hpp>
+namespace http = beast::http;       // from <boost/beast/http.hpp>
+namespace net = boost::asio;        // from <boost/asio.hpp>
+using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
+
+// LIBRARY: https://github.com/lasote/docker_client
+
+// curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" \
+//   -d '{"Image": "alpine", "Cmd": ["echo", "hello world"]}' \
+//   -X POST http://localhost/v1.43/containers/create
+// {"Id":"1c6594faf5","Warnings":null}
+
+// curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.43/containers/1c6594faf5/start
+
+// curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.43/containers/1c6594faf5/wait
+// {"StatusCode":0}
+
+// curl --unix-socket /var/run/docker.sock "http://localhost/v1.43/containers/1c6594faf5/logs?stdout=1"
+// hello world
+
+DockerDesktop::DockerDesktop(Component* parent):Component(parent){
+     init();
+}
+
+void DockerDesktop::init(){
+     getConfig();
+}
+
+//https://stackoverflow.com/questions/59814196/boost-asio-connect-connection-refused
+string DockerDesktop::getConfig(){
+     string config="EXIT_SUCCESS";
+   try{
+        auto const host = "localhost"; //argv[1];
+        auto const port = "8080"; //argv[2];
+        auto const target = "/api/"; //argv[3];
+        int version = 11; //10; //: 11;
+
+        // The io_context is required for all I/O
+        net::io_context ioc;
+
+        // These objects perform our I/O
+        tcp::resolver resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        // Look up the domain name
+        auto const results = resolver.resolve(host, port);
+
+        // Make the connection on the IP address we get from a lookup
+        stream.connect(results);
+
+        // Set up an HTTP GET request message
+        http::request<http::string_body> req{http::verb::get, target, version};
+        req.set(http::field::host, host);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+        // Send the HTTP request to the remote host
+        http::write(stream, req);
+
+        // This buffer is used for reading and must be persisted
+        beast::flat_buffer buffer;
+
+        // Declare a container to hold the response
+        http::response<http::dynamic_body> res;
+
+        // Receive the HTTP response
+        http::read(stream, buffer, res);
+
+        // Write the message to standard out
+        std::cout << res << std::endl;
+
+        // Gracefully close the socket
+        beast::error_code ec;
+        stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+
+        // not_connected happens sometimes
+        // so don't bother reporting it.
+        //
+        if(ec && ec != beast::errc::not_connected)
+            throw beast::system_error{ec};
+
+        // If we get here then the connection is closed gracefully
+    }
+    catch(std::exception const& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        config = "EXIT_FAILURE"; //EXIT_FAILURE int 1
+    }
+     return config; //EXIT_SUCCESS int 0 (stdlib)
+}
+
+// string DockerDesktop::getConfig(){
+//      boost::asio::io_service io_service; 
+//      boost::asio::ip::tcp::endpoint endpoint;
+//      boost::asio::ip::tcp::resolver resolver(io_service);
+//      boost::asio::ip::tcp::resolver::query query("www.boost.org", "http");
+//      boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+//      boost::asio::ip::tcp::resolver::iterator end; // End marker.
+
+//      while (iter != end)
+//      {
+//           boost::asio::ip::tcp::endpoint endpoint = *iter++;
+//                std::cout << endpoint << std::endl;
+//      }
+
+//      boost::asio::ip::tcp::socket socket(io_service);
+//      socket.connect(endpoint);
+// }
+
+// string DockerDesktop::getConfig(){
+//      boost::asio::io_service io_service; 
+//      boost::asio::ip::tcp::endpoint endpoint;
+//      boost::asio::ip::tcp::resolver resolver(io_service);
+//      //boost::asio::ip::tcp::resolver::query query("www.boost.org", "http");
+//      boost::asio::ip::tcp::resolver::query query("localhost:8080", "http");
+//      boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+//      boost::asio::ip::tcp::resolver::iterator end; // End marker.
+
+//      boost::asio::ip::tcp::socket socket(io_service);
+//      boost::system::error_code err;
+//      boost::asio::connect(socket,iter,end,err);
+//      if (!err)
+//      std::cout << "connected" << std::endl;
+
+//         // Set up an HTTP GET request message
+// //string msg = "GET http://www.boost.org HTTP/1.1\r\nHost: localhost:2006\r\nConnection: keep-alive\r\nUser-Agent: Mozilla/5.0\r\n\r\n";
+// string msg = "GET http://localhost:8080/api/ HTTP/1.1\r\nHost: localhost:2006\r\nConnection: keep-alive\r\nUser-Agent: Mozilla/5.0\r\n\r\n";
+//       boost::system::error_code error;
+//      boost::asio::write( socket, boost::asio::buffer(msg), error );
+//      if( !error ) {
+//         cout << "Client sent hello message!" << endl;
+//      }
+//      else {
+//         cout << "send failed: " << error.message() << endl;
+//      }
+//       // getting response from server
+//     boost::asio::streambuf receive_buffer;
+//     boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+//     if( error && error != boost::asio::error::eof ) {
+//         cout << "receive failed: " << error.message() << endl;
+//     }
+//     else {
+//         const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+//         cout << data << endl;
+//     }
+// }
+
+// string DockerDesktop::getConfig(){
+//      boost::asio::io_service io_service;
+// //socket creation
+//      tcp::socket socket(io_service);
+// //connection
+//      //socket.connect( tcp::endpoint( boost::asio::ip::address::from_string("127.0.0.1"), 1234 ));
+//      socket.connect( tcp::endpoint( boost::asio::ip::address::from_string("www.boost.org"), 1234 ));
+// // request/message from client
+//      const string msg = "Hello from Client!\n";
+//      boost::system::error_code error;
+//      boost::asio::write( socket, boost::asio::buffer(msg), error );
+//      if( !error ) {
+//         cout << "Client sent hello message!" << endl;
+//      }
+//      else {
+//         cout << "send failed: " << error.message() << endl;
+//      }
+//  // getting response from server
+//     boost::asio::streambuf receive_buffer;
+//     boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+//     if( error && error != boost::asio::error::eof ) {
+//         cout << "receive failed: " << error.message() << endl;
+//     }
+//     else {
+//         const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+//         cout << data << endl;
+//     }
+//     return 0;
+// }

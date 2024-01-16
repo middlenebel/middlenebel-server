@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websensi-kafka
+  labels:
+    app: websensi-kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websensi-kafka
+      id: "0"
+  template:
+    metadata:
+      labels:
+        app: websensi-kafka
+        id: "0"
+    spec:
+      hostname: localhost
+      containers:
+      - name: websensi-kafka
+        image: nginx:1.14.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 81
