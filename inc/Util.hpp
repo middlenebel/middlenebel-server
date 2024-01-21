@@ -19,6 +19,7 @@ class Util{
     static time_t now();
     static string loadFile(string file);
     static const string getHttp(string theHost, string thePort, string theTarget);
+    static bool endsWith(string data, string sufix);
 };
 
 #define LOG_INIT( A ) ({ \
@@ -69,6 +70,11 @@ class Util{
     } \
 }
 
+#define LOG_ATTRIBUTES(){ \
+    for (std::map<string,string>::iterator item = attributes.begin(); item != attributes.end(); ++item){ \
+        LOG( (string)"[ " + (item->first) + " = "+ (item->second) + "]"); \
+    } \
+}
 // #define CREATE_NEBEL( NAME, A, B ) { \
 //     LOG_FILE((string)"CREATING "+to_string(Util::objectsNum)+" "+NAME, "memory.log"); \
 //     A = new B; \

@@ -1,5 +1,4 @@
 
-//#include <boost/thread/thread.hpp>
 #include <chrono>
 #include <thread>
 
@@ -18,10 +17,8 @@ Kafka* kafka = nullptr;
 int Kafka::kafkaNum = 0;
 
 extern "C" void* loadPlugin(Component* parent){
-
     cout << "Loading plugin Kafka...\n";
     kafka = new Kafka(parent);
-    //CREATE_NEBEL( "kafka", kafka , Kafka(parent) );
     return (void*)kafka;
 }
 
@@ -32,9 +29,10 @@ extern "C" void parse(void* instance ){
 
 Kafka::Kafka(Component* parent):Component(parent){
     producer = nullptr;
+    consumer = nullptr;
     init();
     parent->addComponent(this);
-    LOG_FILE((string)"CREATED Kafka", "memory.log");
+    //DEBUG LOG_FILE((string)"CREATED Kafka", "memory.log");
     parent->objectsNum++; //On deleting objects the parent delete this as his child.
 }
 
@@ -56,13 +54,19 @@ void Kafka::parse(){
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
-        else if (isToken( TK_PORT_FORWARD )){ this->portForward = true; }
+        else if (isToken( TK_PORT_FORWARD )){ parsePortForward(); }
+        // else if (isToken( TK_PORT_FORWARD )){ 
+        //     string actionPF = attributes["className"] +"-"+TK_PORT_FORWARD;
+        //     this->portForward = true; 
+        //     core->executors[actionPF] = this; 
+        //     this->actions[ actionPF ] = actionPF;
+        // }
         else if (isToken( TK_KAFKA_PRODUCER )){ 
             core->executors[TK_KAFKA_PRODUCER] = this; 
-            this->actions.push_back( TK_KAFKA_PRODUCER );
+            this->actions[ TK_KAFKA_PRODUCER ] = TK_KAFKA_PRODUCER;
         } else if (isToken( TK_KAFKA_CONSUMER )){ 
             core->executors[TK_KAFKA_CONSUMER] = this; 
-            this->actions.push_back( TK_KAFKA_CONSUMER );
+            this->actions[ TK_KAFKA_CONSUMER ] = TK_KAFKA_CONSUMER;
         } else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of kafka server
                 LOG( "Kafka " + token );
                 attributes["name"] = token;
@@ -81,9 +85,11 @@ string Kafka::doPlay(){
      try{
         string nameSpace=getAtt("namespace", "default");
         
-        string fileName="./cfgPlugins/deploy-zookeeper.tmp.yaml";
-        string command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        string resultCommand = systemCommand( command );
+        string fileName, command, resultCommand;
+
+        fileName="./cfgPlugins/deploy-zookeeper.tmp.yaml";
+        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+        resultCommand = systemCommand( command );
 
         fileName="./cfgPlugins/deploy-kafka-broker.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
@@ -109,24 +115,45 @@ string Kafka::doPlay(){
 string Kafka::doDestroy(){
      string result = "OK";
      try{
-          string name=attributes["name"];
-          string nameSpace=getAtt("namespace", "default");
+        if (portForward)
+            stopPortForward();
 
-          string command = "kubectl delete deployment zookeeper-object -n "+nameSpace;
-          string resultCommand = systemCommand( command );
+        string name=attributes["name"];
+        string nameSpace=getAtt("namespace", "default");
 
-          command = "kubectl delete deployment kafka-broker-object -n "+nameSpace;
-          resultCommand += systemCommand( command );
+        string command, resultCommand;
 
-          command = "kubectl delete service zookeeper-object -n "+nameSpace;
-          resultCommand += systemCommand( command );
+        try{
+            command = "kubectl delete deployment zookeeper-object -n "+nameSpace;
+            resultCommand = systemCommand( command );
+        }catch(const std::exception& ex){
+            LOG("Exception deleting deployment zookeeper-object: "<<ex.what());
+        }
 
-          command = "kubectl delete service kafka-broker-object -n "+nameSpace;
-          resultCommand += systemCommand( command );
+        try{
+            command = "kubectl delete deployment kafka-broker-object -n "+nameSpace;
+            resultCommand += systemCommand( command );
+        }catch(const std::exception& ex){
+            LOG("Exception deleting deployment afka-broker-object: "<<ex.what());
+        }
 
-          LOG( "Destroyed K8S-Kafka "+attributes["name"] + ": " + resultCommand);
-     }catch(...){
-          result = "ERROR";
+        try{
+            command = "kubectl delete service zookeeper-object -n "+nameSpace;
+            resultCommand += systemCommand( command );
+        }catch(const std::exception& ex){
+            LOG("Exception deleting service zookeeper-object: "<<ex.what());
+        }
+        try{
+            command = "kubectl delete service kafka-broker-object -n "+nameSpace;
+            resultCommand += systemCommand( command );
+        }catch(const std::exception& ex){
+            LOG("Exception deleting service afka-broker-object: "<<ex.what());
+        }
+        LOG( "Destroyed K8S-Kafka "+attributes["name"] ); //Can have " in the message + ": " + resultCommand);
+     }catch(const std::exception& ex){
+        LOG("Exception "<<ex.what());
+        LOG( "ERROR Destroying K8S-Kafka "+attributes["name"] );
+        result = "ERROR";
      }
      return result;
 }
@@ -138,29 +165,28 @@ kubectl port-forward kafka-broker-7c5f4f9dcd-sx7nv 9092 -n kafkanebel
 
 kubectl port-forward `kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath="{.items[0].metadata.name}"` 9092 -n kafkanebel
 */
-void Kafka::startPortForward(){
-    //boost::this_thread::sleep( boost::posix_time::seconds(1) );
-    std::this_thread::sleep_for(3000ms);
-    string nameSpace=getAtt("namespace", "default");
-    string command = "kubectl port-forward `kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath=\"{.items[0].metadata.name}\"` 9092 -n kafkanebel &";
+// void Kafka::startPortForward(){
+//     //boost::this_thread::sleep( boost::posix_time::seconds(1) );
+//     std::this_thread::sleep_for(3000ms);
+//     string nameSpace=getAtt("namespace", "default"); 
+//     string command = "kubectl port-forward `kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath='{.items[0].metadata.name}'` 9092 -n kafkanebel &";
     
-    string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out");
-    //while (resultCommand.rfind("error: unable to forward port because pod is not running.", 0) == 0){
-    while (resultCommand.rfind("error: unable to forward port because pod is not running.") != std::string::npos){
-        LOG("Waiting to server running to port-forward...");
-        std::this_thread::sleep_for(1000ms);
-        resultCommand = systemCommand( command );
-    }
-    LOG( "PortForward running...");
-    portForwardInited = true;
-}
+//     string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out");
+//     while (resultCommand.rfind("error: unable to forward port because pod is not running.") != std::string::npos){
+//         LOG("Waiting to server running to port-forward...");
+//         std::this_thread::sleep_for(1000ms);
+//         resultCommand = systemCommand( command );
+//     }
+//     LOG( "PortForward running...");
+//     portForwardInited = true;
+// }
 
-void Kafka::stopPortForward(){
-    if (!portForwardInited) return;
-    string command = "kill -9 `ps -ef |grep \"port-forward kafka-broker\"|awk '!/grep/ {print $2}'`";
-    string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out" );
-    LOG( "PortForward stoped!");
-}
+// void Kafka::stopPortForward(){
+//     if (!portForwardInited) return;
+//     string command = "kill -9 `ps -ef |grep \"port-forward kafka-broker\"|awk '!/grep/ {print $2}'`";
+//     string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out" );
+//     LOG( "PortForward stoped!");
+// }
 
 string Kafka::execute( string json ){
     //DEBUG LOG(  "Kafka executing... ");
@@ -178,7 +204,6 @@ string Kafka::execute( string json ){
         LOG( "Error parsing actions json! " + json);
         return (string)"{ \"result\" : \""+ result + "\" , \"message\" : \"" + message + "\" }";
     }
-    //DEBUG      LOG( "API " << api["versions"] );
 
     const Json::Value actionValue = actionJson["action"];
     string actionStr = actionValue.asString();
@@ -193,7 +218,9 @@ string Kafka::execute( string json ){
         string dataStr = dataValue.asString();
         return executeConsumer( dataStr );
     }
-        
+    // else if ( actionStr == (attributes["className"] +"-"+ TK_PORT_FORWARD)){ //TODO
+    //     return RETURN_EXECUTE_OK;
+    // }
 
     return (string)"{ \"result\" : \""+ result + "\" , \"message\" : \"" + message + "\" }";
 }
@@ -313,7 +340,7 @@ string Kafka::doQuit(){
     }
     if (portForward)
         stopPortForward();
-    return result;
+    return Component::doQuit();
 }
 
 int Kafka::getObjectNum(){

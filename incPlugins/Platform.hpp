@@ -1,7 +1,6 @@
 #if !defined( PLATFORM_H )
 #define PLATFORM_H
 
-// #include "../inc/Core.hpp"
 #include "../inc/Component.hpp"
 
 #define TK_Platform "Platform"
@@ -11,9 +10,9 @@
 #define TK_K8S "K8S"
 #define TK_DBase "DBase"
 
+#define TK_NebelComp "NebelComp"
 #define TK_Kafka "K8S-Kafka"
-
-class Core;
+#define TK_MySQL "K8S-MySQL"
 
 class Platform : public Component{
     private:

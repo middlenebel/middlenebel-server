@@ -3,9 +3,9 @@
 #define K8S_DESKTOP_H
 
 #include "../inc/Component.hpp"
-#include "../incPlugins/K8S_Deployment.hpp"
-#include "../incPlugins/K8S_Namespace.hpp"
-#include "../incPlugins/K8S_Service.hpp"
+#include "../incPlugins/K8SDeployment.hpp"
+#include "../incPlugins/K8SNamespace.hpp"
+#include "../incPlugins/K8SService.hpp"
 
 #define TK_K8S_Image "image"
 #define TK_K8S_ContainerPort "containerPort"

@@ -21,10 +21,10 @@
 #include "../../inc/Util.hpp"
 #include "../../incPlugins/K8S.hpp"
 
-#include "../../incPlugins/K8S_Deployment.hpp"
-#include "../../incPlugins/K8S_Namespace.hpp"
-#include "../../incPlugins/K8S_Service.hpp"
-#include "../../incPlugins/K8S_Label.hpp"
+#include "../../incPlugins/K8SDeployment.hpp"
+#include "../../incPlugins/K8SNamespace.hpp"
+#include "../../incPlugins/K8SService.hpp"
+#include "../../incPlugins/K8SLabel.hpp"
 
 #include "../../incPlugins/Kafka.hpp"
 

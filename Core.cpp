@@ -5,6 +5,8 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 #include <filesystem>
 #include <fstream>
@@ -39,6 +41,7 @@ void Core::init(){
     synLastType=SYN_UNDEF;
     token="";
     newFileName = "";
+    portForwardingRequested = "";
 
     // core->executors["test"] = this;
     executors["test"] = this;
@@ -47,8 +50,18 @@ void Core::init(){
 void Core::load(string fileName){
     this->fileName = fileName;
     lex->load(fileName);
-    // core->parse();
-    parse();
+
+    // string sufix = ".nebel";
+    // unsigned int pos = fileName.find(sufix);
+    // LOG( "endsWith " << pos << " " << fileName.length() << " " << sufix.length() );
+
+    if (Util::endsWith(fileName , ".nebel")){
+        parse();
+        if (portForwards.size() > 0){
+            executors[ EXECUTOR_PORTFORWARD ] = this; 
+            this->actions[ EXECUTOR_PORTFORWARD ] = EXECUTOR_PORTFORWARD;
+        }
+    }
     lex->close();
 }
 
@@ -88,6 +101,7 @@ bool Core::handleRequest(http::request<http::string_body>& request, tcp::socket&
             response.set(http::field::access_control_allow_origin, "*" );
             string json = "{ \"result\" : \"OK\" , \"message\" : \"Destroy success!\" }";
             response.body() = json;
+            reload = true;
         }else if(request.target() == "/quit"){
             string message = "Quiting...!";
             response.set(http::field::content_type, "application/json");
@@ -166,66 +180,73 @@ bool Core::handleRequest(http::request<http::string_body>& request, tcp::socket&
     }
     return reload;
 }
-void Core::abortServer(){
-    quit = true;
-    //socketRef->cancel();
-    socketRef->close();
-    try{
-        Util::getHttp( "localhost", to_string( serverPort ), "/quit");
-    }catch(...){
-        //Nothing
-    }
-}
+
 bool Core::runServer() {
     bool reload = false;
 
-    try{
-        boost::asio::io_context io_context;
-        tcp::acceptor acceptor(io_context, {tcp::v4(), serverPort});
-        LOG( "Server running!" );
-        while ( !reload && !quit) {
-            tcp::socket socket(io_context);
-            this->socketRef = &socket;
+    LOG( "Server running!" );
+    int retries = 9;
+    while (!reload && (retries-- >0)){
+        bool error = false;
+        try{
+            while ( !reload && !quit) {
+                boost::asio::io_context io_context;
+                tcp::acceptor acceptor(io_context, {tcp::v4(), serverPort});
 
-            acceptor.accept(socket);
+                tcp::socket socket(io_context);
 
-            // Read the HTTP request
-            boost::beast::flat_buffer buffer;
-            http::request<http::string_body> request;
-            
-            bool readed = false;
-            try{
-                boost::beast::http::read(socket, buffer, request);
-                readed = true;
-            }catch (...) {
-                LOG( "Exception reading request!!!" );
+                try{
+                    acceptor.accept(socket);
+                }catch(const std::exception& ex){
+                    LOG("Exception "<<ex.what());
+                    LOG( "Exception accepting requests!!!" );
+                }
+
+                // Read the HTTP request
+                boost::beast::flat_buffer buffer;
+                http::request<http::string_body> request;
+                
+                bool readed = false;
+                try{
+                    boost::beast::http::read(socket, buffer, request);
+                    readed = true;
+                }catch(const std::exception& ex){
+                    LOG("Exception "<<ex.what());
+                    LOG( "Exception reading request!!!" );
+                }
+
+                // Handle the request
+                try{
+                    if (readed)
+                        reload = handleRequest(request, socket);
+                }catch(const std::exception& ex){
+                    LOG("Exception "<<ex.what());
+                    LOG("Exception  Handling the request!");
+                    reload = false;
+                }
+
+                // Close the socket
+                try{
+                    socket.shutdown(tcp::socket::shutdown_send);
+                }catch(const std::exception& ex){
+                    LOG("Exception "<<ex.what());
+                    LOG(  "Exception shutdown socket!!!" );
+                }
             }
-
-            // Handle the request
-            if (readed)
-                reload = handleRequest(request, socket);
-
-            // Close the socket
-            try{
-                socket.shutdown(tcp::socket::shutdown_send);
-            }catch(...){
-                LOG(  "Exception shutdown socket!!!" );
-            }
+        }catch(const std::exception& ex){
+            LOG("Exception "<<ex.what());
+            LOG("Exception starting server! reloading...");
+            error = true;
+            std::this_thread::sleep_for(1000ms);
         }
-    }catch(...){
-        LOG("Exception starting server... reloading");
-        reload = true;
-        destroyProblems();
+        if (!reload && !reload && error && (retries>0) ){
+            LOG("Waiting for restart...");
+            std::this_thread::sleep_for(1000ms);
+        }
     }
     LOG( (string) "Server end. Reload: " + (reload?"true":"false") );
 
     return reload;
-}
-
-void Core::destroyProblems(){
-    string command = "kill -9 `ps -ef |grep \"port-forward kafka-broker\"|awk '!/grep/ {print $2}'`";
-    string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out" );
-    LOG( "PortForward stoped!");
 }
 
 string Core::getJsonComponent(){
@@ -233,9 +254,24 @@ string Core::getJsonComponent(){
     components+=JSON_PROPERTY( "className" , attributes["className"])+",\n";
     components+=JSON_PROPERTY( "name" , attributes["name"] )+",\n";
     components+=JSON_ARRAY( "childs" , getJsonChilds() )+",\n";
+    components+=JSON_ARRAY( "portForwards" , getJsonPortForwards() )+",\n";
     components+=JSON_PROPERTY( "script" , Util::loadFile( lex->script ) )+"\n";
     components+="}";
     return components;
+}
+
+string Core::getJsonPortForwards(){
+    string result = "";
+    for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){
+        result += "{";
+        result += (string)"\"id\":\"" + (child->second->id) + "\",";
+        result += (string)"\"appName\":\"" + (child->second->appName) + "\",";
+        result += (string)"\"port\":\"" + (child->second->port) + "\",";
+        result += (string)"\"nameSpace\":\"" + (child->second->nameSpace) + "\"";
+        result += "}";
+        result += (std::next(child) != portForwards.end() ? ",\n" : "\n");
+    }
+    return result;
 }
 
 string Core::getBrowserReload(string base){
@@ -295,6 +331,7 @@ string Core::doBrowserAction(string json){
         bool isFolder = isFolderValue.asBool();
 
         string path = "./scripts"+baseStr;
+        string pathTo = "./scripts"+baseStr;
         if (actionStr == "addFolder"){
             path += ((baseStr!="/")?"/":"") + newValueStr;
             fs::create_directory(path);
@@ -315,6 +352,21 @@ string Core::doBrowserAction(string json){
             f.close();
             result = "OK";
             message = (string)"Folder "+path+" deleted!";
+        }else if (actionStr == "rename"){
+            //if (!isFolder){
+                path += ((baseStr!="/")?"/":"") + nameStr;
+            //}
+            pathTo += ((baseStr!="/")?"/":"") + newValueStr;
+            LOG("Rename from "<<path<<" to "<<pathTo);
+            try{
+                fs::rename(path, pathTo);
+                result = "OK";
+                message = (string)"Folder "+path+" renamed to "+pathTo;
+            }catch(const std::exception& ex){
+                LOG("Exception "<<ex.what());
+                result = "KO";
+                message = (string)"Exception "+ex.what();
+            }
         }else if (actionStr == "loadScript"){
             if (isFolder){
                 message = (string)"A folder can't be loaded as script!";
@@ -346,11 +398,62 @@ string Core::doExecuteAction(string json){
 
         Component* executor = executors[ actionStr ];
         if (executor != nullptr ){
-            //DEBUG LOG(" Core calling executor "+executor->attributes["name"] );
-            return executor->execute( json );
+            //DEBUG 
+            LOG(" Core calling executor "+executor->attributes["name"] );
+            string response = RETURN_EXECUTE_KO;
+            try{
+                response = executor->execute( json );
+            }catch(const std::exception& ex){
+                LOG("Exception "<<ex.what());
+                LOG("Exception in doExecuteAction! calling to " << executor->attributes["name"]);
+            }
+            return response;
+        }else{
+            LOG("Executor not found for " << actionStr);
         }
     }
 
     return (string) "{ \"result\" : \""+ result +"\" , \"message\" : \""+ message +"\" }";
 }
+string Core::execute( string json){
+    LOG("Core execute ");
 
+    Json::Value actionJson;
+    Json::Reader reader; 
+    bool isOk = reader.parse( json, actionJson );
+    if (!isOk){
+        LOG( "Error parsing actions json! " + json);
+        return (string)"{ \"result\" : \"KO\" , \"message\" : \"Error parsing actions json!\" }";
+    }
+
+    const Json::Value actionValue = actionJson["action"];
+    string actionStr = actionValue.asString();
+
+    if (actionStr==EXECUTOR_PORTFORWARD){
+        portForwardingRequested = "true";
+        LOG("Start of portForward requested!");
+    }
+    return RETURN_EXECUTE_OK;
+}
+
+void Core::startPortforwards(){
+    LOG("Core startPortforwards " << portForwardingRequested);
+    portForwardingRequested = "";
+
+    for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){ 
+        LOG("Starting portForward " << (child->first) );
+        //startPortForward(child->second->appName, child->second->nameSpace, child->second->port);
+        child->second->component->startPortForward();
+    }
+}
+
+string Core::doQuit(){
+    string result = (string) "doQuit " + attributes["name"]+"\n";
+    for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){ 
+        LOG("Deleting portForward " << (child->first) );
+        delete(child->second);
+        objectsNum--;
+    }
+    Component::doQuit();
+    return result;
+}

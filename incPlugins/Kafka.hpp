@@ -1,7 +1,6 @@
 #if !defined( KAFKA_H )
 #define KAFKA_H
 
-// #include "../inc/Core.hpp"
 #include "../inc/Component.hpp"
 
 #include "../incPlugins/KafkaProducer.hpp"
@@ -13,8 +12,6 @@
 #define TK_KAFKA_CONSUMER "KConsumer"
 
 using namespace std;
-
-// class Core;
 
 class Kafka : public Component{
     private:
@@ -36,12 +33,13 @@ class Kafka : public Component{
 
         string doPlay();
         string doDestroy();
+        
         string execute( string actionName );
         string executeProducer(string json);
         string executeConsumer( string json );
 
-        void startPortForward();
-        void stopPortForward();
+        // void startPortForward();
+        // void stopPortForward();
 
         string doQuit();
         int getObjectNum();

@@ -20,8 +20,6 @@ namespace net = boost::asio;        // from <boost/asio.hpp>
 using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 using namespace std;
 
-#include "inc/Util.hpp"
-
 ofstream Util::middlenebelLog;
 ofstream Util::middlenebelLogFile;
 
@@ -30,6 +28,11 @@ int Util::objectsSize = 0;
 
 std::time_t Util::now(){
     return std::time(0);
+}
+
+bool Util::endsWith(string data, string sufix){
+    unsigned int pos = data.find(sufix);
+    return (pos == (data.length() - sufix.length()));
 }
 
 string Util::loadFile(string file){

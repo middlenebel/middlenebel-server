@@ -1,36 +1,46 @@
 #!/usr/bin/make -f
 
-# CFLAGS=-Wall -g -Wcomment -Wsign-compare -fPIC
 CFLAGS=-Wall -g -Wno-comment -Wsign-compare -fPIC
-#ICFLAG=-Iinc"
 
-#  --cflags glib-2.0
+PLUGINS=-shared Util.o Lexical.o Component.o Core.o
 
 all: build
 
 build: buildApp buildPlugins  
+
+buildApp:
+	g++ -c -fPIC *.cpp ${CFLAGS}
+	g++ -o main *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so 
 
 buildCommon:
 	g++ -c -fPIC Util.cpp Lexical.cpp Component.cpp Core.cpp ${CFLAGS}
 
 buildMain:
 	g++ -c -fPIC main.cpp ${CFLAGS}
-	g++ *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -o main
-
-buildApp:
-	g++ -c -fPIC *.cpp ${CFLAGS}
-	g++ *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -o main
-
-buildPlatform:
-	g++ Util.o Lexical.o Component.o plugins/Platform/DockerDesktop.cpp plugins/Platform/K8S.cpp plugins/Platform/Platform.cpp plugins/Platform/K8S_Deployment.cpp plugins/Platform/K8S_Namespace.cpp plugins/Platform/K8S_Service.cpp plugins/Platform/K8S_Label.cpp /lib/x86_64-linux-gnu/libjsoncpp.so -shared ${CFLAGS} -o plugins/Platform.so
-	
-buildKafka:
-	g++ -c -fPIC Core.cpp ${CFLAGS}
-	g++ Util.o Lexical.o Component.o Core.o plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp /lib/x86_64-linux-gnu/libjsoncpp.so ./lib/libcppkafka.so.0.4.0 /usr/lib/x86_64-linux-gnu/librdkafka.so -shared ${CFLAGS} -o plugins/K8S-Kafka.so
+	g++ -o main *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so 
 
 buildPlugins:
-	g++ Util.o Lexical.o Component.o plugins/Platform/DockerDesktop.cpp plugins/Platform/K8S.cpp plugins/Platform/Platform.cpp plugins/Platform/K8S_Deployment.cpp plugins/Platform/K8S_Namespace.cpp plugins/Platform/K8S_Service.cpp plugins/Platform/K8S_Label.cpp /lib/x86_64-linux-gnu/libjsoncpp.so -shared ${CFLAGS} -o plugins/Platform.so
-	g++ Util.o Lexical.o Component.o plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp /lib/x86_64-linux-gnu/libjsoncpp.so ./lib/libcppkafka.so.0.4.0 /usr/lib/x86_64-linux-gnu/librdkafka.so -shared ${CFLAGS} -o plugins/K8S-Kafka.so
+	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/K8S.cpp plugins/Platform/Platform.cpp plugins/Platform/K8SDeployment.cpp plugins/Platform/K8SNamespace.cpp plugins/Platform/K8SService.cpp plugins/Platform/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
+	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so ./lib/libcppkafka.so.0.4.0 /usr/lib/x86_64-linux-gnu/librdkafka.so
+	g++ -o plugins/NebelComp.so ${CFLAGS} plugins/NebelComp/NebelComp.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
+	g++ -o plugins/shared.so ${CFLAGS} plugins/shared.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+
+buildMySQL:
+	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+
+buildShared:
+	g++ -o plugins/shared.so ${CFLAGS} plugins/shared.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+
+buildPlatform:
+	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/K8S.cpp plugins/Platform/Platform.cpp plugins/Platform/K8SDeployment.cpp plugins/Platform/K8SNamespace.cpp plugins/Platform/K8SService.cpp plugins/Platform/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so 
+	
+buildKafka:
+	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so ./lib/libcppkafka.so.0.4.0 /usr/lib/x86_64-linux-gnu/librdkafka.so
+
+buildNebelComp:
+	g++ -o plugins/NebelComp.so ${CFLAGS} plugins/NebelComp/NebelComp.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so 
+
 run:
 	./main
 

@@ -1,4 +1,7 @@
 
+#include <chrono>
+#include <thread>
+
 #include <dlfcn.h> // dlopen, RTLD_LAZY, dlsym
 #include <iostream>
 #include <fstream>
@@ -128,14 +131,61 @@ void Component::parseDebug(){
         }
     }
 }
-void Component::loadPlugin(string pluginName){
+
+void Component::parsePortForward(){
+    //DEBUG LOG( "Executor");
+    bool parsedName = false;
+    bool parsedPort = false;
+    bool parsedNamespace = false;
+    string key="", value="";
+    while ( readToken() ){
+        if (isBlanc()) { SEG_SHOW_BLANC(); }
+        else if (isToken( TK_POINT )){ break; }
+        else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of the pod to search
+            attributes["app"] = token;
+            parsedName = true;
+        }else if ( !parsedPort && token.compare( "" ) != 0 ){ // Gets the nport number to bind
+            attributes["port"] = token;
+            parsedPort = true;
+        }else if ( !parsedNamespace && token.compare( "" ) != 0 ){ // Gets the namespace
+            attributes["namespace"] = token;
+            parsedNamespace = true;
+        } else PARSE_ATTRIBUTES();
+    }
+    //VERIFY
+    if (parsedName && parsedPort && !getAtt("namespace").empty() ){
+        portForward = true;
+        
+        string actionPF = (string) getAtt("className")+"-"+TK_PORT_FORWARD;
+       
+        Core* core = (Core*) getRootComponent( this );
+        // core->executors[actionPF] = this; 
+        // this->actions[ actionPF ] = actionPF;
+
+        PortForward* pf = new PortForward;
+        pf->id = actionPF;
+        pf->appName = getAtt( ATT_APP );
+        pf->port = getAtt( ATT_PORT );
+        pf->nameSpace = getAtt( ATT_NAMESPACE);
+        pf->component = this;
+
+        core->portForwards[actionPF] = pf;
+        objectsNum++;
+
+        LOG( "PortForward app: "+ getAtt("app")+" port: "+ getAtt("port")+ " namespace: "+ getAtt("namespace"));
+    }else{
+        LOG( "ERROR: PortForward bad defined. Attributes necesaries: app, port, namespace.");
+        LOG_ATTRIBUTES();
+    }
+}
+Component* Component::loadPlugin(string pluginName){
     string folder ="plugins/";
     string extension = ".so";
     void *libPlugin = loadLibrary(folder + pluginName + extension);
 
     plugins.push_back( libPlugin );
 
-    LOG("Getting interface...");
+    LOG("Getting interface... " << pluginName);
     void* (*loadPlugin)(Component*) = (void* (*) (Component*)) dlsym(libPlugin, "loadPlugin");
     void (*parse)(void*) = (void (*) (void*)) dlsym(libPlugin, "parse");
 
@@ -152,6 +202,7 @@ void Component::loadPlugin(string pluginName){
 
     void* instance = loadPlugin(this);
     parse(instance);
+    return (Component*) instance;
 }
 
 void* Component::loadLibrary(string librarypath){
@@ -185,26 +236,30 @@ string Component::systemCommand(string command, string filenaMeOut, string filen
 
     command += " > "+filenaMeOut+" 2> "+filenaMeErr;
 
-    system(command.c_str());
-
-    string line;
-    string resultCommand = "";
-
-    ifstream file( filenaMeOut );
-    if (file.is_open()) {
-        while (getline(file, line)) {
-            resultCommand += line + "\\n";
-        }
-        file.close();
+    try{
+        system(command.c_str());
+    }catch(...){
+        LOG("systemCommand. Exception! ");
     }
-    ifstream fileError( filenaMeErr );
-    if (fileError.is_open()) {
-        while (getline(fileError, line)) {
-            resultCommand += line + "\\n";
-        }
-        fileError.close();
-    }
-    return resultCommand;
+
+    // string line;
+    // string resultCommand = "";
+
+    // ifstream file( filenaMeOut );
+    // if (file.is_open()) {
+    //     while (getline(file, line)) {
+    //         resultCommand += line + "\\n";
+    //     }
+    //     file.close();
+    // }
+    // ifstream fileError( filenaMeErr );
+    // if (fileError.is_open()) {
+    //     while (getline(fileError, line)) {
+    //         resultCommand += line + "\\n";
+    //     }
+    //     fileError.close();
+    // }
+    return "OK"; //resultCommand;
 }
 
 string Component::getAtt(string name, string defValue){
@@ -233,14 +288,15 @@ string Component::getJsonComponent(){
 string Component::getJsonActions(){
     string jsonActions = "";
     // Print Strings stored in Vector
-    for (long unsigned int i = 0; i < actions.size(); i++){
-        jsonActions += "\"" + (string)(actions[i]) + "\"\n";
-        jsonActions += (i+1 < actions.size() ? ",\n" : "\n" );
-    }
-    // for (std::vector<string>::iterator action = actions.begin(); action != actions.end(); ++action){
-    //     jsonActions += (string)(action) + "\n";
-    //     jsonActions += (std::next(action) != actions.end() ? ",\n" : "\n");
+    // for (long unsigned int i = 0; i < actions.size(); i++){
+    //     jsonActions += "\"" + (string)(actions[i]) + "\"\n";
+    //     jsonActions += (i+1 < actions.size() ? ",\n" : "\n" );
     // }
+    for (std::map<string,string>::iterator item = actions.begin(); item != actions.end(); ++item){
+        /*DEBUG LOG( (string)"[ " + (item->first) + " = "+ (item->second) + "]");*/ \
+        jsonActions += "\"" + (string)(item->first) + "\"\n";
+        jsonActions += (std::next(item) != actions.end() ? ",\n" : "\n" );
+    }
     return jsonActions;
 }
 string Component::getJsonAttributes(){
@@ -321,3 +377,34 @@ int Component::getObjectNum(){
     return n;
 }
 
+// Use attributes: app, namespace, port
+void Component::startPortForward(){
+    if (portForwardInited){
+        LOG("PortForward previosly started! Restarting...");
+        stopPortForward();
+    }
+    //boost::this_thread::sleep( boost::posix_time::seconds(1) );
+    // std::this_thread::sleep_for(3000ms);
+    string nameSpace=getAtt("namespace", "default");
+    string command = "kubectl port-forward `kubectl get pod -l app="+getAtt("app")+" -n "+getAtt("namespace")+" -o jsonpath='{.items[0].metadata.name}'` "+ getAtt("port")+" -n "+getAtt("namespace")+ " &";
+    
+    systemCommand( command , "portforward.out", "portforward_error.out");
+    // std::this_thread::sleep_for(1000ms);
+    // string resultCommand = Util::loadFile("portforward.out");
+    // int waitMore = 3;
+    // while ((resultCommand=="") && (waitMore-->0)){
+    //     LOG("Waiting to server running to port-forward...");
+    //     std::this_thread::sleep_for(1000ms);
+    //     resultCommand = Util::loadFile("portforward.out");
+    //     std::this_thread::sleep_for(1000ms);
+    // }
+    LOG( "PortForward running for "<<getAtt("app")<<" port "<<getAtt("port"));
+    portForwardInited = true;
+}
+
+void Component::stopPortForward(){
+    //ENSURE if (!portForwardInited) return;
+    string command = "kill -9 `ps -ef |grep \"port-forward "+getAtt("app")+"\"|awk '!/grep/ {print $2}'`";
+    string resultCommand = systemCommand( command , "portforward-stop.out", "portforward-stop_error.out" );
+    LOG( "PortForward stoped! for "<<getAtt("app") );
+}

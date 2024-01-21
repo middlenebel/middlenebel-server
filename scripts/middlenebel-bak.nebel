@@ -5,8 +5,7 @@ Platform: Middlenebel
         pass admin
         port 3306
         PortForward: mysql-nebel 3306 mysql-nebel.
-        Executor: DoNothing 'nothing'.
-        Executor: Install 'installer'
+        Executor: Install 'installer.so'
             inputNum 'Process num'
             inputText Data
             options 'Debian package (.deb)# Archivo.tar# Apt'

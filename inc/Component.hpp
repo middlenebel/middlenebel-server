@@ -10,12 +10,18 @@
 #include "Lexical.hpp"
 #include "Util.hpp"
 
-#define TK_Control "Control"
-#define TK_start "start"
-#define TK_Debug "Debug"
-#define TK_on "on"
-#define TK_POINT "."
+#define ATT_PORT    "port"
+#define ATT_APP     "app"
+#define ATT_NAMESPACE "namespace"
+
+#define TK_Control  "Control"
+#define TK_start    "start"
+#define TK_Debug    "Debug"
+#define TK_on       "on"
+#define TK_POINT    "."
 //#define TK_Blanc "B"
+
+#define TK_PORT_FORWARD "PortForward"
 
 #define SYN_UNDEF '\0'
 #define SYN_IDENT 'I'
@@ -50,27 +56,46 @@
     A=nullptr; \
 }
 
+#define RETURN_EXECUTE_OK (string)"{ \"result\" : \"OK\" , \"message\" : \"Executed sucessfully!\" }" 
+#define RETURN_EXECUTE_KO (string)"{ \"result\" : \"KO\" , \"message\" : \"ERROR Executing!\" }"
+
+#define PARSE_ATTRIBUTES() { \
+        if ( key.empty() ){ /*Gets the attribute name*/ \
+               key = token; \
+        } else { \
+            attributes[key]=token; \
+            key = ""; \
+        } \
+}
+
 // class Core;
 using namespace std;
 
 class Component : public enable_shared_from_this<Component>{
     private:
+        bool portForwardInited;
+
         void parseControl();
         void parseDebug();
         
         void* loadLibrary(string librarypath);
         void parseComment();
+
+    protected:
+        virtual void parsePortForward();
         
     public:
         static int componentNum; //Index of components created, used as identifier.
         int objectsNum; //Dynamics objects created/destroyed, for memory control
 
+        bool portForward;
+
         // Core* core;
         Component* parent;
         std::list<Component*> childs;
         std::list<void*> plugins;
-        std::vector<string> actions;
-
+        // std::vector<string> actions;
+        std::map<string, string> actions;
         std::map<string, string> attributes;
         std::map<string, string> labels;
         std::map<string, Component*> executors;
@@ -82,7 +107,7 @@ class Component : public enable_shared_from_this<Component>{
 
         virtual ~Component() {/* stuff */};
 
-        void loadPlugin(string pluginName);
+        Component* loadPlugin(string pluginName);
         Component* getRootComponent(Component* component);
 
         void addComponent(Component* component);
@@ -121,6 +146,9 @@ class Component : public enable_shared_from_this<Component>{
         virtual string doPlay();
         virtual string doDestroy();
         virtual string doQuit();
+        virtual void startPortForward();
+        void startPortForward(string app, string nameSpace, string port);
+        virtual void stopPortForward();
 };
 
 #endif // !defined( COMPONENT_H )

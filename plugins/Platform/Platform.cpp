@@ -23,7 +23,7 @@ extern "C" void parse(void* instance ){
 Platform::Platform(Component* parent):Component(parent){
     init();
     parent->addComponent(this);
-    LOG_FILE((string)"CREATED Platform", "memory.log");
+    //DEBUG LOG_FILE((string)"CREATED Platform", "memory.log");
     parent->objectsNum++; //On deleting objects the parent delete this as his child.
 }
 
@@ -46,6 +46,8 @@ void Platform::parse(){
         else if (isToken( TK_Server )){ parseServer(); }
         else if (isToken( TK_DBase )){ parseDBase(); }
         else if (isToken( TK_Kafka )){ loadPlugin(token); }
+        else if (isToken( TK_MySQL )){ loadPlugin(token); }
+        else if (isToken( TK_NebelComp )){ loadPlugin(token); }
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of platform
                 LOG( "Platform " + token );
                 attributes["name"] = token;
