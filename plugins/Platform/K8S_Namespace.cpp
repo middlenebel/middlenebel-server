@@ -14,14 +14,14 @@ K8SNamespace::K8SNamespace(Component* parent):Component(parent){
 }
 
 void K8SNamespace::init(){
-     attributes["className"]="K8SNamespace";
-     attributes["name"]="Undef";
+     attributes[ATT_CLASSNAME]="K8SNamespace";
+     attributes[ATT_NAME]="Undef";
 }
 
 string K8SNamespace::getJsonComponent(){
      //DEBUG LOG( "K8S Namespace getJsonComponent..." );
      string components="{";
-     components+=JSON_PROPERTY("name", attributes["name"])+",\n";
+     components+=JSON_PROPERTY(ATT_NAME, attributes[ATT_NAME])+",\n";
      string json_attributes = "";
      MAP_TO_STRING(attributes, json_attributes);
      components+=JSON_ARRAY("attributes", json_attributes )+"\n";
@@ -40,11 +40,11 @@ string K8SNamespace::apply(){
      // yamlFile.close();
      // int ret = system(command.c_str());
 
-     string command = "kubectl create namespace "+attributes["name"];
+     string command = "kubectl create namespace "+attributes[ATT_NAME];
      try{
           //int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Create namespace "+attributes["name"] + ": " + resultCommand );
+          LOG( "Create namespace "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -53,14 +53,14 @@ string K8SNamespace::apply(){
 string K8SNamespace::destroy(){
      string result = "OK";
      try{
-          string name=attributes["name"];
+          string name=attributes[ATT_NAME];
           if (name=="")
                return "No namespace found to remove";
           string command = "kubectl delete namespace "+name; //+" &";
           //DEBUG LOG( "command: " + command ); 
           // int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Destroy namespace "+attributes["name"] + ": " + resultCommand );
+          LOG( "Destroy namespace "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -76,7 +76,7 @@ string K8SNamespace::getYaml(){
 "apiVersion: apps/v1\n"+
 "kind: Namespace\n"+
 "metadata:\n"+
-"  name: "+attributes["name"]+"\n"+
+"  name: "+attributes[ATT_NAME]+"\n"+
 "  labels:\n"+
-"    app: "+attributes["name"]+"\n";
+"    app: "+attributes[ATT_NAME]+"\n";
 }

@@ -7,25 +7,18 @@
 #include <iostream>
 #include "fields_alloc.hpp"
 
+#include "PortForward.hpp"
 #include "Component.hpp"
+#include "Config.hpp"
 
 #define EXECUTOR_PORTFORWARD "PortForwardAdmin"
+#define FILE_MIDDLENEBEL_LOG "middlenebel.log"
 
 using tcp = boost::asio::ip::tcp;
 namespace http = boost::beast::http;
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 
-#define SERVER_PORT 8080
-
 using namespace std;
-
-struct PortForward{
-    string id;
-    string appName;
-    string port;
-    string nameSpace;
-    Component* component;
-};
 
 class Core : public Component{
     private:
@@ -34,20 +27,19 @@ class Core : public Component{
         void send_bad_response(  http::status status, std::string const& error, tcp::socket& socket_);
         string doExecuteAction(string json);
         void destroyProblems();
-        
-        bool quit;
 
         short unsigned int serverPort;
     public:
+        Config* config;
         // string logContent;
         string fileName;
         string newFileName;
         string portForwardingRequested;
+        bool quit;
 
         std::map<string, PortForward*> portForwards;
 
-        Core(Lexical*, int serverPort = SERVER_PORT);
-        bool runServer();
+        Core(Lexical*, Config*);
         bool handleRequest(http::request<http::string_body>& request, tcp::socket& socket);
         
         // addPortFordward(string id, PortForward pf){ portForwards[id] = }
@@ -62,9 +54,12 @@ class Core : public Component{
         string getBrowserReload(string base);
         string doBrowserAction(string action);
         string execute( string json);
-        void startPortforwards();
 
-        string doQuit();
+        void createPortForward(string actionPF, string app, string port, string naMespace);
+        void startAllPortforwards();
+        void stopAllPortforwards();
+
+        virtual string doQuit();
 };
 
 #endif // !defined( CORE_H )

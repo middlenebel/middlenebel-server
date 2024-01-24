@@ -1,11 +1,11 @@
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
+// #include <boost/beast/core.hpp>
+// #include <boost/beast/http.hpp>
+// #include <boost/beast/version.hpp>
+// #include <boost/asio/connect.hpp>
+// #include <boost/asio/ip/tcp.hpp>
 
-#include <boost/asio.hpp>
+// #include <boost/asio.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -16,10 +16,10 @@
 #include "../../inc/Util.hpp"
 #include "../../incPlugins/DockerDesktop.hpp"
 
-namespace beast = boost::beast;     // from <boost/beast.hpp>
-namespace http = beast::http;       // from <boost/beast/http.hpp>
-namespace net = boost::asio;        // from <boost/asio.hpp>
-using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
+// namespace beast = boost::beast;     // from <boost/beast.hpp>
+// namespace http = beast::http;       // from <boost/beast/http.hpp>
+// namespace net = boost::asio;        // from <boost/asio.hpp>
+// using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
 
 DockerDesktop::DockerDesktop(Component* parent):Component(parent){
      init();
@@ -27,8 +27,8 @@ DockerDesktop::DockerDesktop(Component* parent):Component(parent){
 }
 
 void DockerDesktop::init(){
-     attributes["className"]="DockerDesktop";
-     attributes["name"]="DockerDesktop";
+     attributes[ATT_CLASSNAME]="DockerDesktop";
+     attributes[ATT_NAME]="DockerDesktop";
      // getConfig();
 }
 

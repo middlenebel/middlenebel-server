@@ -39,8 +39,8 @@ K8S::K8S(Component* parent):Component( parent ){
 }
 
 void K8S::init(){
-     attributes["className"]="K8S";
-     attributes["name"]="K8S";
+     attributes[ATT_CLASSNAME]="K8S";
+     attributes[ATT_NAME]="K8S";
      string config = getConfig();
      if ( config == MIDDLENEBEL_EXIT_FAILURE){
           LOG( "K8S Starting proxy...");
@@ -68,8 +68,7 @@ string K8S::getConfig(){
 
 void K8S::parse(){
     LOG( "Parse by K8S...");
-    string key="";
-    string value="";
+    string key="", value="";
     while ( readToken() ){
         //DEBUG LOG( "\nTOKEN: " << parser->token );
 
@@ -79,12 +78,7 @@ void K8S::parse(){
           else if (isToken( TK_K8S_CreateNamespaces )){ parseNamespace(); }
           else if (isToken( TK_K8S_Service )){ parseService(); }
           else if (isToken( TK_Kafka )){ loadPlugin(token);  }
-          else if ( key.empty() ){ // Gets the attribute name
-               key = token;
-          } else {
-               attributes[key]=token;
-               key = "";
-          }
+          else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
@@ -95,8 +89,7 @@ void K8S::parseDeployment(){
      CREATE_NEBEL( "k8s/deployment", deployment , K8SDeployment(this) );
      k8s_deployments.push_back( deployment );
      bool parsedName = false;
-     string key="";
-     string value="";
+     string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\nDeployment TOKEN: " << token );
 
@@ -107,27 +100,20 @@ void K8S::parseDeployment(){
           else if ( !parsedName ){ // Gets the name of platform
                LOG( "Deploy " + token );
                //deployment->name = token;
-               deployment->attributes["name"]=token;
+               deployment->attributes[ATT_NAME]=token;
                parsedName = true;
-          } else if ( key.empty() ){ // Gets the attribute name
-               key = token;
-          } else {
-               deployment->attributes[key]=token;
-               //DEBUG  LOG( "K8S Attribute " << key << " = " << token );
-               key = "";
-          }
+          } else PARSE_ATT_KEY_TOKEN(deployment->attributes, key, token);
      }
 }
 
 void K8S::parseNamespace(){
-     //DEBUG LOG( "Namespace");
+     //DEBUG LOG( ATT_NAMESPACE);
      // K8SNamespace* aNamespace = new K8SNamespace(this);
      K8SNamespace* aNamespace;
      CREATE_NEBEL( "k8s/namespace", aNamespace , K8SNamespace(this) );
      k8s_namespaces.push_back( aNamespace );
      bool parsedName = false;
-     string key="";
-     string value="";
+     string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\nDeployment TOKEN: " << token );
 
@@ -135,27 +121,19 @@ void K8S::parseNamespace(){
           else if (isToken( TK_POINT )){ return; }
           else if ( !parsedName ){ // Gets the name of platform
                LOG( "Namespace " + token );
-               aNamespace->attributes["name"] = token;
+               aNamespace->attributes[ATT_NAME] = token;
                parsedName = true;
-          } else if ( key.empty() ){ // Gets the attribute name
-               key = token;
-          } else {
-               aNamespace->attributes[key]=token;
-               //DEBUG  LOG( "K8S Attribute " << key << " = " << token );
-               key = "";
-          }
+          } else PARSE_ATT_KEY_TOKEN(aNamespace->attributes, key, token);
      }
 }
 
 void K8S::parseService(){
      //DEBUG LOG( "Service");
-     // K8SService* service = new K8SService(this);
      K8SService* service;
      CREATE_NEBEL( "k8s/service", service , K8SService(this) );
      k8s_services.push_back( service );
      bool parsedName = false;
-     string key="";
-     string value="";
+     string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\nDeployment TOKEN: " << token );
 
@@ -164,15 +142,10 @@ void K8S::parseService(){
           else if (isToken( TK_K8S_Labels )){ parseLabels( service ); }
           else if ( !parsedName ){ // Gets the name of platform
                LOG( "Service " + token );
-               service->attributes["name"] = token;
+               service->attributes[ATT_NAME] = token;
                parsedName = true;
-          } else if ( key.empty() ){ // Gets the attribute name
-               key = token;
-          } else {
-               service->attributes[key]=token;
-               //DEBUG  LOG( "K8S Attribute " << key << " = " << token );
-               key = "";
-          }
+          } else PARSE_ATT_KEY_TOKEN(service->attributes, key, token);
+
      }
 }
 
@@ -182,40 +155,26 @@ void K8S::parseLabels( Component* k8sElement ){
      K8SLabel* label;
      CREATE_NEBEL( "k8s/label", label , K8SLabel( k8sElement ) );
      // k8sElement->labels.insert( label );
-     string key="";
-     string value="";
+     string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\K8SLabel TOKEN: " << token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
-          else if ( key.empty() ){ // Gets the label name
-               key = token;
-          } else {
-               k8sElement->labels[key]=token;
-               //DEBUG  LOG( "K8SLabel " << key << " = " << token );
-               key = "";
-          }
+          else PARSE_ATT_KEY_TOKEN(label->attributes, key, token);
      }
 }
 
 void K8S::parseEnv( K8SDeployment* k8sDep ){
      LOG( "Env");
 
-     string key="";
-     string value="";
+     string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\K8SEnv TOKEN: " << token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
-          else if ( key.empty() ){ // Gets the label name
-               key = token;
-          } else {
-               k8sDep->env[key]=token;
-               //DEBUG  LOG( "K8SEnv " << key << " = " << token );
-               key = "";
-          }
+          else PARSE_ATT_KEY_TOKEN(k8sDep->env, key, token);
      }
 }
 
@@ -240,8 +199,8 @@ void K8S::parseJsonConfig(string json){
 string K8S::getJsonComponent(){
      //DEBUG     LOG( "K8S getJsonComponent...");
      string components="{";
-     components+=JSON_PROPERTY("className", attributes["className"])+",\n";
-     components+=JSON_PROPERTY("name", attributes["name"])+",\n";
+     components+=JSON_PROPERTY(ATT_CLASSNAME, attributes[ATT_CLASSNAME])+",\n";
+     components+=JSON_PROPERTY(ATT_NAME, attributes[ATT_NAME])+",\n";
      components+=JSON_ARRAY( "actions", getJsonActions() )+",\n";
      components+=JSON_ARRAY("childs", getJsonChilds() )+",\n";
      string json_versions = "";
@@ -308,32 +267,31 @@ string K8S::doDestroy(){
      for (std::list<K8SNamespace*>::iterator aNamespace = k8s_namespaces.begin(); aNamespace != k8s_namespaces.end(); ++aNamespace){
           result += (*aNamespace)->destroy();
      }
-     return result;
+     return result + Component::doDestroy();
 }
 
 string K8S::doQuit(){
-     LOG( attributes["name"] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
-     string result = (string) "doQuit " + attributes["name"]+"\n";
+     LOG( attributes[ATT_NAME] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
+     string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
      for (std::list<K8SDeployment*>::iterator deploy = k8s_deployments.begin(); deploy != k8s_deployments.end(); ++deploy){
-         result += "Delete K8SDeployment "+(*deploy)->attributes["name"]+"\n";
+         result += "Delete K8SDeployment "+(*deploy)->attributes[ATT_NAME]+"\n";
           //     delete(*deploy);
           DELETE_NEBEL( "K8S/deploy" , *deploy );
      }
      k8s_deployments.clear();
      for (std::list<K8SService*>::iterator service = k8s_services.begin(); service != k8s_services.end(); ++service){
-          result += "Delete K8SService "+(*service)->attributes["name"]+"\n";
+          result += "Delete K8SService "+(*service)->attributes[ATT_NAME]+"\n";
           // delete(*service);
           DELETE_NEBEL( "K8S/service" , *service);
      }
      k8s_services.clear();
      for (std::list<K8SNamespace*>::iterator aNamespace = k8s_namespaces.begin(); aNamespace != k8s_namespaces.end(); ++aNamespace){
-          result += "Delete K8SNamespace "+(*aNamespace)->attributes["name"]+"\n";
+          result += "Delete K8SNamespace "+(*aNamespace)->attributes[ATT_NAME]+"\n";
           // delete(*aNamespace);
           DELETE_NEBEL( "K8S/aNamespace" , *aNamespace);
      }
      k8s_namespaces.clear();
-     // Component::doQuit();
-     return result;
+     return Component::doQuit();
 }
 
 int K8S::getObjectNum(){
@@ -359,7 +317,7 @@ kubectl get pods -n kube-system
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 
-kubectl -n kubernetes-dashboard create token admin-user --duration=168h
+kubectl -n kubernetes-dashboard create token admin-user --duration=6000h
 kubectl  create token --help
 eyJhbGciOiJSUzI1NiIsImtpZCI6Im8wdU5ocUIzN2o4Z01oQ2dRS1lZalEza203N19QbTFfMDNCUGlwQ3drMzQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzAyNTUyMjYwLCJpYXQiOjE3MDI1NDg2NjAsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJhZG1pbi11c2VyIiwidWlkIjoiZjJjMDk4MDMtNzc1Mi00ODM1LWFiNzYtODhjMTE4ZjI3OTBlIn19LCJuYmYiOjE3MDI1NDg2NjAsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDphZG1pbi11c2VyIn0.nDRrmi4RHdOgqJwLhvBavdaQxi3BkzFo4_9Wl2Jeuv_IdLrqd-wXr243anN1Bm-T1xOW9oGwrJj2MLPoRcieJclt6LpNY47ZDZvfVPzQv07yl02UoVY3ODEWFjGWpURbVi-PsD3rlxEQj9RhbxPvL7FANshwJ4Fqea3xljGAP0-2VTVIGxmcACr_wtO5KywaPwAlQtMeeGU7ZVwLgQyCuyiC20-sxlhqOqzsSa8hVvezXpUcCzOljVIKhaXyD5yLjlRTsQD5HN3jOCaNh5iG6bJRY7heVVnE2FHVzyE0FlOo7pA4aisysCOgKOC7Ff3vJeYMExnAjoJ8Ingkf-QlBA
 

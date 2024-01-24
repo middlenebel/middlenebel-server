@@ -1,22 +1,18 @@
-//Control start
-Debug on
+// Workshop for Kafka programming
 Platform: Middlenebel
-    NebelComp: MySQL
+    K8S:
+        CreateNamespaces: kafka2mysql.
+    .
+    namespace kafka2mysql
+    K8S-MySQL: MyDB1
         pass admin
         port 3306
-        PortForward: mysql-nebel 3306 mysql-nebel.
-        Executor: DoNothing 'nothing'.
-        Executor: Install 'installer'
-            inputNum 'Process num'
-            inputText Data
-            options 'Debian package (.deb)# Archivo.tar# Apt'
-            description 'Install MySQL connector on Linux'
-            buttonCancel 'Cancel'
-        .
-        Executor: Connector 'shared'
-            description 'Load MySQL plugin & Test the connection with the server. Require Port Forwarding'
-            buttonLoad Load
-            buttonRun Connect
-        .
+        PortForward: mysql-nebel 3306 kafka2mysql.
+        Initialize: MY_DB1 'sql/my_db1.sql'.
+    .
+    K8S-Kafka: kafka1
+        PortForward: kafka-broker 9092 kafka2mysql.
+        KProducer
+        KConsumer
     .
 .

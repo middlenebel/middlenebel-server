@@ -64,7 +64,7 @@ void *consumerScheduler (void* caller) {
     while ( !KafkaConsumer::abort ) {
         // Try to consume a message
         Message msg = consumer.poll();
-        //DEBUG LOG( "Polled!" );
+        //DEBUG( "Polled!" );
 
         if (msg) {
             //DEBUG LOG( "Message!" );
@@ -84,7 +84,7 @@ void *consumerScheduler (void* caller) {
                 // Print the payload
                 msgLine+= (string) msg.get_payload() + "\\n";
 
-                //DEBUG LOG("Message " + (string) msg.get_payload());
+                DEBUG("Message " + (string) msg.get_payload());
 
                 // Now commit the message
                 consumer.commit(msg);

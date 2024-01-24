@@ -10,8 +10,8 @@ int Platform::platformNum = 0;
 
 extern "C" void* loadPlugin(Component* parent){
     cout << "Loading plugin Platform...\n";
-    platform = new Platform(parent);
-    //CREATE_NEBEL( "platform", platform , Platform(parent) );
+    CREATE_NEBEL_PLUGIN( "platform", platform , Platform(parent) );
+
     return (void*)platform;
 }
 
@@ -22,20 +22,19 @@ extern "C" void parse(void* instance ){
 
 Platform::Platform(Component* parent):Component(parent){
     init();
-    parent->addComponent(this);
-    //DEBUG LOG_FILE((string)"CREATED Platform", "memory.log");
-    parent->objectsNum++; //On deleting objects the parent delete this as his child.
+    // parent->addComponent(this); //Do it in loadPlugin()
 }
 
 void Platform::init(){
-    attributes["className"]="Platform";
-    attributes["name"] = "Platform-"+to_string(platformNum++);
+    attributes[ATT_CLASSNAME]="Platform";
+    attributes[ATT_NAME] = "Platform-"+to_string(platformNum++);
     LOG( "Platform started!");
 }
 
 void Platform::parse(){
     LOG( "Parse by Platform...");
     bool parsedName = false;
+    string key="", value="";
     while ( readToken() ){
         //DEBUG LOG( "\nPlatform TOKEN: " << token );
 
@@ -50,14 +49,16 @@ void Platform::parse(){
         else if (isToken( TK_NebelComp )){ loadPlugin(token); }
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of platform
                 LOG( "Platform " + token );
-                attributes["name"] = token;
+                attributes[ATT_NAME] = token;
                 parsedName = true;
             }
-        else {
-            LOG( "Platform UNKNOWN " + token );
-            lex->lexBack();
-            parent->parse();
-        }
+        else PARSE_ATT_KEY_TOKEN(attributes, key, token);
+        //TODO else detect errors, now go to attribs
+        // else {
+        //     LOG( "Platform UNKNOWN " + token );
+        //     lex->lexBack();
+        //     parent->parse();
+        // }
     }
 }
 
@@ -87,7 +88,7 @@ void Platform::parseServer(){
         // else if (isToken( TK_Server )){ Server(); }
         // else if (isToken( TK_DBase )){ DBase(); }
         else if (token.compare( "" ) != 0 ){
-                attributes["name"] = token;
+                attributes[ATT_NAME] = token;
             }
         else return;
     }

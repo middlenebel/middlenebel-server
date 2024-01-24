@@ -1,0 +1,9 @@
+// Workshop for Kafka programming
+Platform: Middlenebel
+    namespace kafka2mysql
+    K8S-Kafka: kafka1
+        PortForward: kafka-broker 9092 kafka2mysql.
+        KProducer
+        KConsumer
+    .
+.

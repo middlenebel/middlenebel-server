@@ -26,12 +26,12 @@ string K8SLabel::getYamlLabels(){
 // +
 // "    app: "+name+"-label\n"+
 // "  name: "+name+"-label\n"+
-// "  namespace: "+attributes["namespace"]+"\n"+
+// "  namespace: "+attributes[ATT_NAMESPACE]+"\n"+
 // "spec:\n"+
 // "  type: "+attributes["type"]+"\n"+
 // "  ports:\n"+
 // "    - name: "+name+"-port\n"+
-// "      port: "+attributes["port"]+"\n"+
+// "      port: "+attributes[ATT_PORTRTRT]+"\n"+
 // "      nodePort: "+attributes["nodePort"]+"\n"+
 // "      targetPort: "+attributes["targetPort"]+"\n"+
 // "  selector:\n"+
