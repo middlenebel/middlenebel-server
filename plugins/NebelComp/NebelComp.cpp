@@ -19,7 +19,8 @@ int NebelComp::nebelCompNum = 0;
 
 extern "C" void* loadPlugin(Component* parent){
     cout << "Loading plugin NebelComp...\n";
-    nebelComp = new NebelComp(parent);
+    // nebelComp = new NebelComp(parent);
+    CREATE_NEBEL_PLUGIN( "nebelComp", nebelComp , NebelComp(parent) );
     return (void*)nebelComp;
 }
 
@@ -31,14 +32,12 @@ NebelComp::NebelComp(Component* parent):Component(parent){
     loadedComponent = nullptr;
 
     init();
-    parent->addComponent(this);
-    //DEBUG LOG_FILE((string)"CREATED NebelComp", "memory.log");
-    parent->objectsNum++; //On deleting objects the parent delete this as his child.
+    // parent->addComponent(this); //Do it in loadPlugin()
 }
 
 void NebelComp::init(){
-    attributes["className"]="NebelComp";
-    attributes["name"] = "NebelComp-"+to_string(nebelCompNum++);
+    attributes[ATT_CLASSNAME]="NebelComp";
+    attributes[ATT_NAME] = "NebelComp-"+to_string(nebelCompNum++);
     LOG( "NebelComp started!");
 }
 void NebelComp::parse(){
@@ -58,9 +57,9 @@ void NebelComp::parse(){
         else if (isToken( TK_System )){ parseSystem(); } 
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of component
             LOG( "NebelComp " << token );
-            attributes["name"] = token;
+            attributes[ATT_NAME] = token;
             parsedName = true;
-        } else PARSE_ATTRIBUTES();
+        } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
@@ -101,7 +100,7 @@ void NebelComp::parseExecutor(){
 void NebelComp::parseSubAttributes( string name ){
     Component* subAttributes;
     CREATE_NEBEL( "NebelComp/subAttributes", subAttributes , Component( this ));
-    subAttributes->attributes["name"] = name;
+    subAttributes->attributes[ATT_NAME] = name;
     addComponent( subAttributes );
     std::map<string, string> &attributes = subAttributes->attributes;
 
@@ -109,7 +108,7 @@ void NebelComp::parseSubAttributes( string name ){
     while ( readToken() ){
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
-        else PARSE_ATTRIBUTES();
+        else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
@@ -117,8 +116,8 @@ void NebelComp::parseSubAttributes( string name ){
 // void NebelComp::startPortForward(){
 //     //boost::this_thread::sleep( boost::posix_time::seconds(1) );
 //     std::this_thread::sleep_for(3000ms);
-//     string nameSpace=getAtt("namespace", "default");
-//     string command = "kubectl port-forward `kubectl get pod -l app="+getAtt("app")+" -n "+getAtt("namespace")+" -o jsonpath='{.items[0].metadata.name}'` "+ getAtt("port")+" -n "+getAtt("namespace")+ " &";
+//     string nameSpace=getAtt(ATT_NAMESPACE, "default");
+//     string command = "kubectl port-forward `kubectl get pod -l app="+getAtt(ATT_APPPP)+" -n "+getAtt(ATT_NAMESPACE)+" -o jsonpath='{.items[0].metadata.name}'` "+ getAtt(ATT_PORT)+" -n "+getAtt(ATT_NAMESPACE)+ " &";
     
 //     string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out");
 //     while (resultCommand.rfind("error: unable to forward port because pod is not running.") != std::string::npos){
@@ -132,32 +131,23 @@ void NebelComp::parseSubAttributes( string name ){
 
 // void NebelComp::stopPortForward(){
 //     if (!portForwardInited) return;
-//     string command = "kill -9 `ps -ef |grep \"port-forward "+getAtt("app")+"\"|awk '!/grep/ {print $2}'`";
+//     string command = "kill -9 `ps -ef |grep \"port-forward "+getAtt(ATT_APP)+"\"|awk '!/grep/ {print $2}'`";
 //     string resultCommand = systemCommand( command , "portforward-stop.out", "portforward-stop_error.out" );
 //     LOG( "PortForward stoped!");
 // }
 
 int NebelComp::getObjectNum(){
     int n = objectsNum;
-
-    // n += producer->getObjectNum();
-    // n += consumer->getObjectNum();
     return n;
 }
 
 string NebelComp::doPlay(){
-    if (portForward)
-        startPortForward();
     return "OK";
 }
 string NebelComp::doDestroy(){
-    if (portForward)
-            stopPortForward();
-    return "OK";
+    return Component::doDestroy();
 }
 string NebelComp::doQuit(){
-    if (portForward)
-        stopPortForward();
     return Component::doQuit();
 }
 
@@ -218,15 +208,6 @@ string NebelComp::execute( string json ){
         objects[library]->execute( dataStr );
         LOG(  "NebelComp command: " + commandStr + " executed OK!");
         return (string)"{ \"result\" : \"OK\" , \"message\": \"Executed OK!\" }";
-    }if (commandStr=="StartPortForward"){
-        if (portForward){
-            startPortForward();
-            LOG( "NebelComp: StartPortForward!");
-        }else{
-            LOG( "NebelComp: portForward is FALSE!!!");
-        }
-        
-        return RETURN_EXECUTE_OK;
     }
 
     return RETURN_EXECUTE_KO;

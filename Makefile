@@ -9,11 +9,12 @@ all: build
 build: buildApp buildPlugins  
 
 buildApp:
+	clear
 	g++ -c -fPIC *.cpp ${CFLAGS}
 	g++ -o main *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so 
 
 buildCommon:
-	g++ -c -fPIC Util.cpp Lexical.cpp Component.cpp Core.cpp ${CFLAGS}
+	g++ -c -fPIC Util.cpp Lexical.cpp Component.cpp Core.cpp Config.cpp ${CFLAGS}
 
 buildMain:
 	g++ -c -fPIC main.cpp ${CFLAGS}

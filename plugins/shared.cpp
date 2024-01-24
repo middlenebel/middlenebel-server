@@ -29,7 +29,7 @@ extern "C" void parse(void* instance ){
 }
 
 Shared::Shared(Component* parent):Component(parent){ 
-  LOG("Shared made by " << parent->attributes["name"]);
+  LOG("Shared made by " << parent->attributes[ATT_NAME]);
   parent->addComponent(this);
   parent->objectsNum++; //On deleting objects the parent delete this as his child.
 }
@@ -46,7 +46,7 @@ string Shared::execute( string json ){
     sql::Statement *stmt;
 
     driver = sql::mysql::get_mysql_driver_instance();
-    con = driver->connect("tcp://localhost:"+getAtt("port"), "root", getAtt("pass"));
+    con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
     LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
 

@@ -35,7 +35,8 @@ KafkaProducer::KafkaProducer(){}
 void KafkaProducer::send( string topic, string message ) {
     string toReplace = "{{num}}";
     std::size_t pos = message.find( toReplace );
-    string replaceWith = std::to_string( this->sent++ );
+    this->sent++;
+    string replaceWith = std::to_string( this->sent );
     if (pos!=std::string::npos){        
         message.replace(pos, toReplace.length(), replaceWith);
     }
@@ -55,6 +56,9 @@ void KafkaProducer::send( string topic, string message ) {
     Configuration config = {
         { "metadata.broker.list", brokers }
     };
+
+    // string key = to_string( this->sent );
+    // builder.key( key );
 
     // Create the producer
     cppkafka::Producer cppProducer(config);

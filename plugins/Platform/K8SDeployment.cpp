@@ -14,14 +14,14 @@ K8SDeployment::K8SDeployment(Component* parent):Component(parent){
 }
 
 void K8SDeployment::init(){
-     attributes["className"]="K8SDepoyment";
-     attributes["name"]="Undef";
+     attributes[ATT_CLASSNAME]="K8SDepoyment";
+     attributes[ATT_NAME]="Undef";
 }
 
 string K8SDeployment::getJsonComponent(){
      //DEBUG LOG( "K8S Deployment getJsonComponent..." );
      string components="{";
-     components+=JSON_PROPERTY("name", attributes["name"])+",\n";
+     components+=JSON_PROPERTY(ATT_NAME, attributes[ATT_NAME])+",\n";
      // string json_attributes = "";
      // MAP_TO_STRING(attributes, json_attributes);
      // components+=JSON_ARRAY("attributes", json_attributes )+"\n";
@@ -35,8 +35,8 @@ string K8SDeployment::apply(){
      try{
           string yaml = getYaml();
           //DEBUG LOG( "YAML:\n" + yaml + "\n";
-          string fileName="./outyamls/deploy-"+attributes["name"]+".tmp.yaml";
-          string nameSpace=getAtt("namespace", "default");
+          string fileName="./outyamls/deploy-"+attributes[ATT_NAME]+".tmp.yaml";
+          string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = "kubectl apply -f "+fileName+" -n "+nameSpace; //+" &";
           
           ofstream yamlFile(fileName);
@@ -44,7 +44,7 @@ string K8SDeployment::apply(){
           yamlFile.close();
           // int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Apply deployment "+attributes["name"] + ": " + resultCommand );
+          LOG( "Apply deployment "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -53,13 +53,13 @@ string K8SDeployment::apply(){
 string K8SDeployment::destroy(){
      string result = "OK";
      try{
-          string name=attributes["name"];
-          string nameSpace=getAtt("namespace", "default");
+          string name=attributes[ATT_NAME];
+          string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = "kubectl delete deployment "+name+" -n "+nameSpace; //+" &";
           //DEBUG LOG( "command: " + command ); 
           // int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Destroy deployment "+attributes["name"] + ": " + resultCommand );
+          LOG( "Destroy deployment "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -71,24 +71,24 @@ string K8SDeployment::getYaml(){
 "apiVersion: apps/v1\n"+
 "kind: Deployment\n"+
 "metadata:\n"+
-"  name: "+attributes["name"]+"\n"+
+"  name: "+attributes[ATT_NAME]+"\n"+
 "  labels:\n"+
-"    app: "+attributes["name"]+"\n"+
+"    app: "+attributes[ATT_NAME]+"\n"+
 "spec:\n"+
 "  replicas: "+getAtt("replicas","1")+"\n"+
 "  selector:\n"+
 "    matchLabels:\n"+
-"      app: "+attributes["name"]+"\n"+
+"      app: "+attributes[ATT_NAME]+"\n"+
 "      id: \""+getAtt("id","0")+"\"\n"+
 "  template:\n"+
 "    metadata:\n"+
 "      labels:\n"+
-"        app: "+attributes["name"]+"\n"+
+"        app: "+attributes[ATT_NAME]+"\n"+
 "        id: \""+getAtt("id","0")+"\"\n"+
 "    spec:\n"+
 "      hostname: "+getAtt("hostname","localhost")+"\n"+
 "      containers:\n"+
-"      - name: "+attributes["name"]+"\n"+
+"      - name: "+attributes[ATT_NAME]+"\n"+
 "        image: "+attributes["image"]+"\n"+
 "        imagePullPolicy: IfNotPresent\n"+
 "        ports:\n"+

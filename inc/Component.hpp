@@ -7,12 +7,15 @@
 #include <vector>
 #include <map>
 
-#include "Lexical.hpp"
 #include "Util.hpp"
+#include "Lexical.hpp"
+#include "PortForward.hpp"
 
-#define ATT_PORT    "port"
-#define ATT_APP     "app"
 #define ATT_NAMESPACE "namespace"
+#define ATT_NAME    "name"
+#define ATT_APP     "app"
+#define ATT_PORT    "port"
+#define ATT_CLASSNAME "className"
 
 #define TK_Control  "Control"
 #define TK_start    "start"
@@ -36,13 +39,17 @@
 #define SEG_SHOW_BLANC() ({;})
 
 #define CREATE_NEBEL( NAME, A, B ) { \
-    /*LOG_FILE((string)"CREATING "+to_string(Util::objectsNum)+" "+NAME, "memory.log");*/ \
+    LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
     A = new B; \
     objectsNum++; \
 }
+#define CREATE_NEBEL_PLUGIN( NAME, A, B ) { \
+    LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
+    A = new B; \
+}
 
 #define DELETE_NEBEL( NAME, A ) { \
-    /*LOG_FILE((string)"DELETING "+to_string(Util::objectsNum)+" "+NAME, "memory.log");*/ \
+    LOG_FILE((string)"DELETING - "+NAME, "memory.log"); \
     objectsNum--; \
     if (A == nullptr ){ \
         LOG((string)"ERROR DELETE NULL PTR "+NAME); \
@@ -59,16 +66,12 @@
 #define RETURN_EXECUTE_OK (string)"{ \"result\" : \"OK\" , \"message\" : \"Executed sucessfully!\" }" 
 #define RETURN_EXECUTE_KO (string)"{ \"result\" : \"KO\" , \"message\" : \"ERROR Executing!\" }"
 
-#define PARSE_ATTRIBUTES() { \
-        if ( key.empty() ){ /*Gets the attribute name*/ \
-               key = token; \
-        } else { \
-            attributes[key]=token; \
-            key = ""; \
-        } \
+/*Gets the attribute name*/ 
+#define PARSE_ATT_KEY_TOKEN(A,K,T) { \
+        if ( K.empty() ){ K = T; } \
+        else { A[K]=T; K = ""; } \
 }
 
-// class Core;
 using namespace std;
 
 class Component : public enable_shared_from_this<Component>{
@@ -90,7 +93,6 @@ class Component : public enable_shared_from_this<Component>{
 
         bool portForward;
 
-        // Core* core;
         Component* parent;
         std::list<Component*> childs;
         std::list<void*> plugins;
@@ -138,7 +140,7 @@ class Component : public enable_shared_from_this<Component>{
         string getAtt(string name);
         string getAtt(string name, string defValue);
 
-        virtual string systemCommand(string command, 
+        static string systemCommand(string command, 
             string filenaMeOut = "system_command.out",
             string filenaMeErr = "system_error.out" );
 
@@ -146,9 +148,10 @@ class Component : public enable_shared_from_this<Component>{
         virtual string doPlay();
         virtual string doDestroy();
         virtual string doQuit();
-        virtual void startPortForward();
-        void startPortForward(string app, string nameSpace, string port);
-        virtual void stopPortForward();
+
+        virtual void startPortForward(PortForward* pf);
+        // virtual void startPortForward(string app, string nameSpace, string port);
+        virtual void stopPortForward(PortForward* pf);
 };
 
 #endif // !defined( COMPONENT_H )

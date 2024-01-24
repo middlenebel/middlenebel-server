@@ -23,9 +23,6 @@ using namespace std;
 ofstream Util::middlenebelLog;
 ofstream Util::middlenebelLogFile;
 
-int Util::objectsNum = 0;
-int Util::objectsSize = 0;
-
 std::time_t Util::now(){
     return std::time(0);
 }
@@ -34,7 +31,11 @@ bool Util::endsWith(string data, string sufix){
     unsigned int pos = data.find(sufix);
     return (pos == (data.length() - sufix.length()));
 }
-
+void Util::emptyFile(string file){
+    ofstream aFile;
+    aFile.open( file );
+    aFile.close();
+}
 string Util::loadFile(string file){
     ifstream scriptFile;
     string script;

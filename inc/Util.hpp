@@ -13,11 +13,9 @@ class Util{
     static ofstream middlenebelLog;
     static ofstream middlenebelLogFile;
 
-    static int objectsNum;
-    static int objectsSize;
-
     static time_t now();
     static string loadFile(string file);
+    static void emptyFile(string file);
     static const string getHttp(string theHost, string thePort, string theTarget);
     static bool endsWith(string data, string sufix);
 };
@@ -32,6 +30,7 @@ class Util{
     Util::middlenebelLog.open("middlenebel.log", std::ios_base::app); \
     Util::middlenebelLog << A << "\n"; \
     Util::middlenebelLog.close();\
+    /* DEBUG(A); // Replication */ \
 })
 
 #define LOG_INIT_FILE( A , FILE ) ({ \
@@ -44,6 +43,12 @@ class Util{
     Util::middlenebelLogFile.open(FILE, std::ios_base::app); \
     Util::middlenebelLogFile << A << "\n"; \
     Util::middlenebelLogFile.close();\
+})
+
+#define DEBUG( A ) ({ \
+    Util::middlenebelLog.open("middlenebel-debug.log", std::ios_base::app); \
+    Util::middlenebelLog << A << "\n"; \
+    Util::middlenebelLog.close();\
 })
 
 #define JSON_PROPERTY( PROP, VALUE ) ( (string)"\"" + PROP + "\":\"" + VALUE + "\"" )
@@ -75,6 +80,7 @@ class Util{
         LOG( (string)"[ " + (item->first) + " = "+ (item->second) + "]"); \
     } \
 }
+
 // #define CREATE_NEBEL( NAME, A, B ) { \
 //     LOG_FILE((string)"CREATING "+to_string(Util::objectsNum)+" "+NAME, "memory.log"); \
 //     A = new B; \

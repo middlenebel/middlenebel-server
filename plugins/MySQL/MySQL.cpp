@@ -22,7 +22,7 @@ MySQL* mysql = nullptr;
 
 extern "C" void* loadPlugin(Component* parent){
     cout << "Loading plugin MySQL...\n";
-    mysql = new MySQL(parent);
+    CREATE_NEBEL_PLUGIN( "mysql", mysql , MySQL(parent) );
     return (void*)mysql;
 }
 
@@ -32,15 +32,14 @@ extern "C" void parse(void* instance ){
 }
 
 MySQL::MySQL(Component* parent):Component(parent){ 
-  LOG("MySQL made by " << parent->attributes["name"]);
+  LOG("MySQL made by " << parent->attributes[ATT_NAME]);
 
   init();
-  parent->addComponent(this);
-  parent->objectsNum++; //On deleting objects the parent delete this as his child.
+//   parent->addComponent(this); //Do it in loadPlugin()
 }
 void MySQL::init(){
-    attributes["className"]="K8S-MySQL";
-    attributes["name"] = "MySQL-"+to_string(mySQLNum++);
+    attributes[ATT_CLASSNAME]="K8S-MySQL";
+    attributes[ATT_NAME] = "MySQL-"+to_string(mySQLNum++);
     LOG( "MySQL started!");
 }
 void MySQL::parse(){
@@ -58,15 +57,15 @@ void MySQL::parse(){
         else if (isToken( TK_INITIALIZE )){ parseInitialize(); }
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of component
             LOG( "MySQL " << token );
-            attributes["name"] = token;
+            attributes[ATT_NAME] = token;
             parsedName = true;
 
-            string actionPF = (string) getAtt("className")+"-"+TK_INITIALIZE;
+            string actionPF = (string) getAtt(ATT_CLASSNAME)+"-"+TK_INITIALIZE;
        
             Core* core = (Core*) getRootComponent( this );
             core->executors[actionPF] = this; 
             this->actions[ actionPF ] = actionPF;
-        } else PARSE_ATTRIBUTES();
+        } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 void MySQL::parseInitialize(){
@@ -89,7 +88,7 @@ void MySQL::parseInitialize(){
             LOG( "MySQL Script: " << token );
             attributes[ ATTRIB_INITIALIZE_SCRIPT ] = token;
             parsedScript = true;
-        }else PARSE_ATTRIBUTES();
+        } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
@@ -97,7 +96,7 @@ string MySQL::doPlay(){
      string result = "OK";
      try{
         LOG("K8S-MySQL Deploying...");
-        string nameSpace=getAtt("namespace", "default");
+        string nameSpace=getAtt(ATT_NAMESPACE, "default");
         
         string fileName, command, resultCommand;
 
@@ -110,9 +109,6 @@ string MySQL::doPlay(){
         fileName="./cfgPlugins/service-mysql-nebel.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
         resultCommand = systemCommand( command );
-
-        if (portForward)
-            startPortForward();
     }catch(...){
           result = "ERROR";
      }
@@ -121,11 +117,8 @@ string MySQL::doPlay(){
 string MySQL::doDestroy(){
      string result = "OK";
      try{
-        if (portForward)
-            stopPortForward();
-
-        string name=attributes["name"];
-        string nameSpace=getAtt("namespace", "default");
+        string name=attributes[ATT_NAME];
+        string nameSpace=getAtt(ATT_NAMESPACE, "default");
 
         string command, resultCommand;
 
@@ -135,15 +128,13 @@ string MySQL::doDestroy(){
         command = "kubectl delete service mysql-nebel -n "+nameSpace;
         resultCommand += systemCommand( command );
 
-        LOG( "Destroyed K8S-MySQL "+attributes["name"]); // Can have " in the messages  + ": " + resultCommand);
+        LOG( "Destroyed K8S-MySQL "+attributes[ATT_NAME]); // Can have " in the messages  + ": " + resultCommand);
      }catch(...){
           result = "ERROR";
      }
-     return result;
+     return result + Component::doDestroy();
 }
 string MySQL::doQuit(){
-    if (portForward)
-        stopPortForward();
     return Component::doQuit();
 }
 void MySQL::onLoad(){
@@ -174,23 +165,14 @@ string MySQL::execute( string json ){
     //     string dataStr = dataValue.asString();
     //     return executeProducer( dataStr );
     // }else 
-    if ( actionStr == (attributes["className"] +"-"+ TK_TESTCONN) ){ //TODO
+    if ( actionStr == (attributes[ATT_CLASSNAME] +"-"+ TK_TESTCONN) ){ //TODO
         // const Json::Value dataValue = actionJson["data"];
         // string dataStr = dataValue.asString();
         return executeTestConn( );
-    }else if ( actionStr == (attributes["className"] +"-"+ TK_INITIALIZE) ){ //TODO
+    }else if ( actionStr == (attributes[ATT_CLASSNAME] +"-"+ TK_INITIALIZE) ){ //TODO
         // const Json::Value dataValue = actionJson["data"];
         // string dataStr = dataValue.asString();
         return executeInitialize( );
-    }else 
-    if ( actionStr == (attributes["className"] +"-"+ TK_PORT_FORWARD)){
-        if (portForward){
-            startPortForward();
-            LOG( "NebelComp: StartPortForward!");
-        }else{
-            LOG( "NebelComp: portForward is FALSE!!!");
-        }
-        return RETURN_EXECUTE_OK;
     }
 
     //DEBUG 
@@ -201,7 +183,7 @@ string MySQL::execute( string json ){
     // sql::Statement *stmt;
 
     // driver = sql::mysql::get_mysql_driver_instance();
-    // con = driver->connect("tcp://localhost:"+getAtt("port"), "root", getAtt("pass"));
+    // con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
     // LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
 
@@ -227,7 +209,7 @@ string MySQL::executeTestConn(){
     sql::Connection *con;
 
     driver = sql::mysql::get_mysql_driver_instance();
-    con = driver->connect("tcp://localhost:"+getAtt("port"), "root", getAtt("pass"));
+    con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
     LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
 
@@ -241,7 +223,7 @@ string MySQL::executeInitialize(){
     // sql::Statement *stmt;
 
     driver = sql::mysql::get_mysql_driver_instance();
-    con = driver->connect("tcp://localhost:"+getAtt("port"), "root", getAtt("pass"));
+    con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
     //LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
 
@@ -249,8 +231,8 @@ string MySQL::executeInitialize(){
 
     // bool result = false;
     // stmt = con->createStatement();
-    // stmt->execute("CREATE DATABASE IF NOT EXISTS "+getAtt("name")); //CREATE DATABASE IF NOT EXISTS NEBEL_DB
-    // stmt->execute("USE "+getAtt("name"));
+    // stmt->execute("CREATE DATABASE IF NOT EXISTS "+getAtt(ATT_NAME)); //CREATE DATABASE IF NOT EXISTS NEBEL_DB
+    // stmt->execute("USE "+getAtt(ATT_NAME));
     // result = stmt->execute("DROP TABLE IF EXISTS nebel");
     // LOG("DROP TABLE Result: " << (result?"true":"false"));
 

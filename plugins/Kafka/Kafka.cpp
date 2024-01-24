@@ -18,7 +18,7 @@ int Kafka::kafkaNum = 0;
 
 extern "C" void* loadPlugin(Component* parent){
     cout << "Loading plugin Kafka...\n";
-    kafka = new Kafka(parent);
+    CREATE_NEBEL_PLUGIN( "kafka", kafka , Kafka(parent) );
     return (void*)kafka;
 }
 
@@ -31,14 +31,12 @@ Kafka::Kafka(Component* parent):Component(parent){
     producer = nullptr;
     consumer = nullptr;
     init();
-    parent->addComponent(this);
-    //DEBUG LOG_FILE((string)"CREATED Kafka", "memory.log");
-    parent->objectsNum++; //On deleting objects the parent delete this as his child.
+    // parent->addComponent(this); //Do it in loadPlugin()
 }
 
 void Kafka::init(){
-    attributes["className"]="K8S-Kafka";
-    attributes["name"] = "Kafka-"+to_string(kafkaNum++);
+    attributes[ATT_CLASSNAME]="K8S-Kafka";
+    attributes[ATT_NAME] = "Kafka-"+to_string(kafkaNum++);
     portForward = false;
     LOG( "Kafka started!");
 }
@@ -56,7 +54,7 @@ void Kafka::parse(){
         else if (isToken( TK_POINT )){ return; }
         else if (isToken( TK_PORT_FORWARD )){ parsePortForward(); }
         // else if (isToken( TK_PORT_FORWARD )){ 
-        //     string actionPF = attributes["className"] +"-"+TK_PORT_FORWARD;
+        //     string actionPF = attributes[ATT_CLASSNAME] +"-"+TK_PORT_FORWARD;
         //     this->portForward = true; 
         //     core->executors[actionPF] = this; 
         //     this->actions[ actionPF ] = actionPF;
@@ -69,44 +67,38 @@ void Kafka::parse(){
             this->actions[ TK_KAFKA_CONSUMER ] = TK_KAFKA_CONSUMER;
         } else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of kafka server
                 LOG( "Kafka " + token );
-                attributes["name"] = token;
+                attributes[ATT_NAME] = token;
                 parsedName = true;
-        } else if ( key.empty() ){ // Gets the attribute name
-               key = token;
-        } else {
-            attributes[key]=token;
-            key = "";
-        }
+        } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
 string Kafka::doPlay(){
      string result = "OK";
      try{
-        string nameSpace=getAtt("namespace", "default");
-        
+        string nameSpace=getAtt( ATT_NAMESPACE, "nebel");
         string fileName, command, resultCommand;
+        
+        command = "kubectl create namespace "+nameSpace;
+        resultCommand = "Create namespaces " + systemCommand( command ) + ", ";
 
         fileName="./cfgPlugins/deploy-zookeeper.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        resultCommand = systemCommand( command );
+        resultCommand += "Deploy zookeeper " + systemCommand( command )+ ", ";
 
         fileName="./cfgPlugins/deploy-kafka-broker.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        resultCommand = systemCommand( command );
+        resultCommand += "Deploy kafka-broker " + systemCommand( command )+ ", ";
 
         fileName="./cfgPlugins/service-zookeeper.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        resultCommand = systemCommand( command );
+        resultCommand += "Service zookeeper " + systemCommand( command )+ ", ";
 
         fileName="./cfgPlugins/service-kafka-broker.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        resultCommand = systemCommand( command );
+        resultCommand += "Service kafka-broker " + systemCommand( command );
 
-        if (portForward)
-            startPortForward();
-
-        LOG( "K8S-Kafka "+attributes["name"] + " deployed!" );
+        LOG( "K8S-Kafka "+attributes[ATT_NAME] + " deployed!" );
      }catch(...){
           result = "ERROR";
      }
@@ -115,11 +107,8 @@ string Kafka::doPlay(){
 string Kafka::doDestroy(){
      string result = "OK";
      try{
-        if (portForward)
-            stopPortForward();
-
-        string name=attributes["name"];
-        string nameSpace=getAtt("namespace", "default");
+        string name=attributes[ATT_NAME];
+        string nameSpace=getAtt(ATT_NAMESPACE, "default");
 
         string command, resultCommand;
 
@@ -149,50 +138,18 @@ string Kafka::doDestroy(){
         }catch(const std::exception& ex){
             LOG("Exception deleting service afka-broker-object: "<<ex.what());
         }
-        LOG( "Destroyed K8S-Kafka "+attributes["name"] ); //Can have " in the message + ": " + resultCommand);
+
+        LOG( "Destroyed K8S-Kafka "+attributes[ATT_NAME] ); //Can have " in the message + ": " + resultCommand);
      }catch(const std::exception& ex){
         LOG("Exception "<<ex.what());
-        LOG( "ERROR Destroying K8S-Kafka "+attributes["name"] );
+        LOG( "ERROR Destroying K8S-Kafka "+attributes[ATT_NAME] );
         result = "ERROR";
      }
-     return result;
+     return result+Component::doDestroy();
 }
-
-/*
-kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath="{.items[0].metadata.name}"
-
-kubectl port-forward kafka-broker-7c5f4f9dcd-sx7nv 9092 -n kafkanebel
-
-kubectl port-forward `kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath="{.items[0].metadata.name}"` 9092 -n kafkanebel
-*/
-// void Kafka::startPortForward(){
-//     //boost::this_thread::sleep( boost::posix_time::seconds(1) );
-//     std::this_thread::sleep_for(3000ms);
-//     string nameSpace=getAtt("namespace", "default"); 
-//     string command = "kubectl port-forward `kubectl get pod -l app=kafka-broker -n kafkanebel -o jsonpath='{.items[0].metadata.name}'` 9092 -n kafkanebel &";
-    
-//     string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out");
-//     while (resultCommand.rfind("error: unable to forward port because pod is not running.") != std::string::npos){
-//         LOG("Waiting to server running to port-forward...");
-//         std::this_thread::sleep_for(1000ms);
-//         resultCommand = systemCommand( command );
-//     }
-//     LOG( "PortForward running...");
-//     portForwardInited = true;
-// }
-
-// void Kafka::stopPortForward(){
-//     if (!portForwardInited) return;
-//     string command = "kill -9 `ps -ef |grep \"port-forward kafka-broker\"|awk '!/grep/ {print $2}'`";
-//     string resultCommand = systemCommand( command , "portforward.out", "portforward_error.out" );
-//     LOG( "PortForward stoped!");
-// }
 
 string Kafka::execute( string json ){
     //DEBUG LOG(  "Kafka executing... ");
-
-    if (portForward && !portForwardInited)
-        startPortForward();
         
     string result = "KO";
     string message = "Command unknown";
@@ -207,7 +164,7 @@ string Kafka::execute( string json ){
 
     const Json::Value actionValue = actionJson["action"];
     string actionStr = actionValue.asString();
-    //DEBUG LOG(  "Kafka actionStr " + actionStr);
+    // DEBUG( "Kafka actionStr " + actionStr);
 
     if ( actionStr == TK_KAFKA_PRODUCER){
         const Json::Value dataValue = actionJson["data"];
@@ -218,9 +175,6 @@ string Kafka::execute( string json ){
         string dataStr = dataValue.asString();
         return executeConsumer( dataStr );
     }
-    // else if ( actionStr == (attributes["className"] +"-"+ TK_PORT_FORWARD)){ //TODO
-    //     return RETURN_EXECUTE_OK;
-    // }
 
     return (string)"{ \"result\" : \""+ result + "\" , \"message\" : \"" + message + "\" }";
 }
@@ -295,14 +249,15 @@ string Kafka::executeConsumer(string json){
     const Json::Value actionValue = dataJson["action"];
     string actionStr = actionValue.asString();
 
-    //DEBUG LOG( "executeConsumer: action " + actionStr );
+    //DEBUG( "executeConsumer: action " + actionStr );
 
     if (consumer == nullptr){
-        // consumer = new KafkaConsumer();
         CREATE_NEBEL( "kafka/consumer", consumer , KafkaConsumer() );
+        LOG("Consumer created!");
     }
 
     if (actionStr == "Consume"){
+        //DEBUG("Action consume");
         const Json::Value topicValue = dataJson["topic"];
         string topicStr = topicValue.asString();
 
@@ -314,7 +269,7 @@ string Kafka::executeConsumer(string json){
         result = "OK";
         message = "Consumer started!";
     }else if (actionStr == "Get"){
-        //DEBUG LOG( "executeConsumer sending getting messages..." );
+        //DEBUG( "executeConsumer sending getting messages..." );
         result = "OK";
         message = KafkaConsumer::messages;
     }else if (actionStr == "Abort"){
@@ -325,7 +280,7 @@ string Kafka::executeConsumer(string json){
 }
 
 string Kafka::doQuit(){
-    string result = (string) "Kafka.doQuit " + attributes["name"]+"\n";
+    string result = (string) "Kafka.doQuit " + attributes[ATT_NAME]+"\n";
     if (producer != nullptr){
         producer->doQuit();
         // delete(producer);
@@ -338,8 +293,7 @@ string Kafka::doQuit(){
         DELETE_NEBEL( "kafka/consumer" , consumer );
         result += "PKConsumer deleted!\n";
     }
-    if (portForward)
-        stopPortForward();
+
     return Component::doQuit();
 }
 

@@ -12,15 +12,6 @@
 #define TK_System "System"
 #define TK_PORT_FORWARD "PortForward"
 
-// #define PARSE_ATTRIBUTES() { \
-//         if ( key.empty() ){ /*Gets the attribute name*/ \
-//                key = token; \
-//         } else { \
-//             attributes[key]=token; \
-//             key = ""; \
-//         } \
-// }
-
 using namespace std;
 
 class NebelComp : public Component{

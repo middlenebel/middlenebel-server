@@ -1,0 +1,22 @@
+//Control start
+Debug on
+Platform: Middlenebel
+    NebelComp: MySQL
+        pass admin
+        port 3306
+        PortForward: mysql-nebel 3306 mysql-nebel.
+        Executor: DoNothing 'nothing'.
+        Executor: Install 'installer'
+            inputNum 'Process num'
+            inputText Data
+            options 'Debian package (.deb)# Archivo.tar# Apt'
+            description 'Install MySQL connector on Linux'
+            buttonCancel 'Cancel'
+        .
+        Executor: Connector 'shared'
+            description 'Load MySQL plugin & Test the connection with the server. Require Port Forwarding'
+            buttonLoad Load
+            buttonRun Connect
+        .
+    .
+.

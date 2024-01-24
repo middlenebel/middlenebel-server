@@ -14,14 +14,14 @@ K8SService::K8SService(Component* parent):Component(parent){
 }
 
 void K8SService::init(){
-     attributes["className"]="K8SService";
-     attributes["name"]="Undef";
+     attributes[ATT_CLASSNAME]="K8SService";
+     attributes[ATT_NAME]="Undef";
 }
 
 string K8SService::getJsonComponent(){
      //DEBUG LOG( "K8S Service getJsonComponent..." );
      string components="{";
-     components+=JSON_PROPERTY("name", attributes["name"])+",\n";
+     components+=JSON_PROPERTY(ATT_NAME, attributes[ATT_NAME])+",\n";
      string json_attributes = "";
      MAP_TO_STRING(attributes, json_attributes);
      components+=JSON_ARRAY("attributes", json_attributes )+"\n";
@@ -33,8 +33,8 @@ string K8SService::apply(){
      string result = "OK";
      string yaml = getYaml();
      //DEBUG LOG( "YAML:\n" + yaml + "\n";
-     string fileName="./outyamls/service-"+attributes["name"]+".tmp.yaml";
-     string nameSpace=getAtt("namespace", "default");
+     string fileName="./outyamls/service-"+attributes[ATT_NAME]+".tmp.yaml";
+     string nameSpace=getAtt(ATT_NAMESPACE, "default");
      string command = (string)"kubectl apply -f "+fileName+" -n "+nameSpace; //+" &";
      try{
           ofstream yamlFile(fileName);
@@ -42,7 +42,7 @@ string K8SService::apply(){
           yamlFile.close();
           // int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Apply service "+attributes["name"] + ": " + resultCommand );
+          LOG( "Apply service "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -53,13 +53,13 @@ string K8SService::apply(){
 string K8SService::destroy(){
      string result = "OK";
      try{
-          string name=attributes["name"];
-          string nameSpace=getAtt("namespace", "default");
+          string name=attributes[ATT_NAME];
+          string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = (string)"kubectl delete service "+name+" -n "+nameSpace; //+" &";
           //DEBUG LOG( "command: " + command ); 
           // int ret = system(command.c_str());
           string resultCommand = systemCommand( command );
-          LOG( "Destroy service "+attributes["name"] + ": " + resultCommand );
+          LOG( "Destroy service "+attributes[ATT_NAME] + ": " + resultCommand );
      }catch(...){
           result = "ERROR";
      }
@@ -75,15 +75,15 @@ string K8SService::getYaml(){
 "kind: Service\n"+
 "metadata:\n"+
 "  labels:\n"+
-"    app: "+attributes["name"]+"\n"+
-"  name: "+attributes["name"]+"\n"+
+"    app: "+attributes[ATT_NAME]+"\n"+
+"  name: "+attributes[ATT_NAME]+"\n"+
 "spec:\n"+
 "  type: "+attributes["type"]+"\n"+
 "  ports:\n"+
-"    - name: "+attributes["name"]+"\n"+
-"      port: "+attributes["port"]+"\n"+
+"    - name: "+attributes[ATT_NAME]+"\n"+
+"      port: "+attributes[ATT_PORTRTRTRTRT]+"\n"+
 "      nodePort: "+attributes["nodePort"]+"\n"+
 "      targetPort: "+attributes["targetPort"]+"\n"+
 "  selector:\n"+
-"    app: "+attributes["name"]+"\n";
+"    app: "+attributes[ATT_NAME]+"\n";
 }
