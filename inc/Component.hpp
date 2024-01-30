@@ -8,10 +8,16 @@
 #include <map>
 
 #include "Util.hpp"
+#include "Util.hpp"
 #include "Lexical.hpp"
+#include "PortForward.hpp"
 #include "PortForward.hpp"
 
 #define ATT_NAMESPACE "namespace"
+#define ATT_NAME    "name"
+#define ATT_APP     "app"
+#define ATT_PORT    "port"
+#define ATT_CLASSNAME "className"
 #define ATT_NAME    "name"
 #define ATT_APP     "app"
 #define ATT_PORT    "port"
@@ -40,6 +46,7 @@
 
 #define CREATE_NEBEL( NAME, A, B ) { \
     LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
+    LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
     A = new B; \
     objectsNum++; \
 }
@@ -47,8 +54,13 @@
     LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
     A = new B; \
 }
+#define CREATE_NEBEL_PLUGIN( NAME, A, B ) { \
+    LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
+    A = new B; \
+}
 
 #define DELETE_NEBEL( NAME, A ) { \
+    LOG_FILE((string)"DELETING - "+NAME, "memory.log"); \
     LOG_FILE((string)"DELETING - "+NAME, "memory.log"); \
     objectsNum--; \
     if (A == nullptr ){ \
@@ -152,6 +164,10 @@ class Component : public enable_shared_from_this<Component>{
         virtual string doPlay();
         virtual string doDestroy();
         virtual string doQuit();
+
+        virtual void startPortForward(PortForward* pf);
+        // virtual void startPortForward(string app, string nameSpace, string port);
+        virtual void stopPortForward(PortForward* pf);
 
         virtual void startPortForward(PortForward* pf);
         // virtual void startPortForward(string app, string nameSpace, string port);
