@@ -1,4 +1,5 @@
 // Workshop for Kafka programming
+// Workshop for Kafka programming
 Platform: Middlenebel
     K8S:
         CreateNamespaces: kafka2mysql.
