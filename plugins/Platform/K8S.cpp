@@ -71,6 +71,7 @@ string K8S::getConfig(){
 void K8S::parse(){
     LOG( "Parse by K8S...");
     string key="", value="";
+    string key="", value="";
     while ( readToken() ){
         //DEBUG LOG( "\nTOKEN: " << parser->token );
 
@@ -91,6 +92,7 @@ void K8S::parseDeployment(){
      CREATE_NEBEL( "k8s/deployment", deployment , K8SDeployment(this) );
      k8s_deployments.push_back( deployment );
      bool parsedName = false;
+     string key="", value="";
      string key="", value="";
      while ( readToken() ){
           //DEBUG         LOG( "\nDeployment TOKEN: " << token );
@@ -282,7 +284,10 @@ string K8S::doDestroy(){
 string K8S::doQuit(){
      LOG( attributes[ATT_NAME] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
      string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
+     LOG( attributes[ATT_NAME] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
+     string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
      for (std::list<K8SDeployment*>::iterator deploy = k8s_deployments.begin(); deploy != k8s_deployments.end(); ++deploy){
+         result += "Delete K8SDeployment "+(*deploy)->attributes[ATT_NAME]+"\n";
          result += "Delete K8SDeployment "+(*deploy)->attributes[ATT_NAME]+"\n";
           //     delete(*deploy);
           DELETE_NEBEL( "K8S/deploy" , *deploy );

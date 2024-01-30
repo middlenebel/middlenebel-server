@@ -168,6 +168,10 @@ class Component : public enable_shared_from_this<Component>{
         virtual void startPortForward(PortForward* pf);
         // virtual void startPortForward(string app, string nameSpace, string port);
         virtual void stopPortForward(PortForward* pf);
+
+        virtual void startPortForward(PortForward* pf);
+        // virtual void startPortForward(string app, string nameSpace, string port);
+        virtual void stopPortForward(PortForward* pf);
 };
 
 #endif // !defined( COMPONENT_H )
