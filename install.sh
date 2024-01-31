@@ -17,7 +17,7 @@ echo
 
 read -p "Do you like continue with the installation [y/N]? " yesNoOption
 
-if [ yesNoOption -eq "y" ] 
+if [ $yesNoOption -eq "y" ] 
 then
     exit 0
 fi
