@@ -5,12 +5,51 @@ sudo chown -R owner:group directory
 
 ## Build Server
 
-## Updating ng and npm
+## Install Git
+
+## Install g++
+sudo apt install g++
+
+## Install Make
+
+
+## Download & Build Middlenebel Server
+git clone https://github.com/middlenebel/middlenebel-server.git
+cd middlenebel-server
+make all
+
+
+## Build Front
+
+### Updating ng and npm
 
 **npm**
 npm install npm@latest
 
-## Build Front
+### Installing HTTP Server
+npm install lite-server --save-dev
+
+### Build Front
+ng build --configuration production
+
+### Start build
+cd dist
+http-server -p 9000
+
+Or
+
+lite-server --baseDir="dist/project-name"
+
+# openSUSE
+- openSUSE: sudo zypper install git-core
+
+## Install g++ (gcc-c++ in openSUSE)
+- openSUSE: sudo zypper in gcc-c++
+
+## Install Make
+- openSUSE: sudo zypper install make
+
+## openSUSE no compatible con BOOST
 
 Dependencies:
 npm install ng-circle-progress --save
@@ -31,28 +70,6 @@ npm install lite-server --save-dev
 https://www.npmjs.com/package/lite-server
 
 http-server -p 9000
-
-punksystec@LAPTOP-CPH12905:~/projects/middlenebel-front$ ng build --watch
-✔ Browser application bundle generation complete.
-⠋ Generating index html...6 rules skipped due to selector errors:
-  .igx-card-actions--vertical:is() -> Empty sub-selector
-  igc-rating::part(label) -> Pseudo-elements are not supported by css-select
-  igc-rating::part(value-label) -> Pseudo-elements are not supported by css-select
-  igc-rating[disabled]::part(label) -> Pseudo-elements are not supported by css-select
-  igc-rating[disabled]::part(value-label) -> Pseudo-elements are not supported by css-select
-  igc-trial-watermark::part(link) -> Pseudo-elements are not supported by css-select
-✔ Index html generation complete.
-
-Initial Chunk Files           | Names         |  Raw Size | Estimated Transfer Size
-main.bf464e46d9a473b1.js      | main          | 737.76 kB |               160.19 kB
-styles.8a0cc04c913f8292.css   | styles        | 552.00 kB |                48.38 kB
-polyfills.3f60ec756f64cbce.js | polyfills     |  33.02 kB |                10.66 kB
-scripts.cd816875f3dc91fb.js   | scripts       |  19.78 kB |                 6.24 kB
-runtime.dfab1c53a8599ae0.js   | runtime       | 894 bytes |               519 bytes
-
-                              | Initial Total |   1.31 MB |               225.97 kB
-
-Build at: 2024-01-23T21:48:47.287Z - Hash: c62dad5ef519e12a - Time: 36383ms
 
 ------------ PROJECTS
 projects/alpha-01	Librerias dinamicas C++. Makefile.

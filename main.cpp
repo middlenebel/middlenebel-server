@@ -13,6 +13,7 @@
 #include <dlfcn.h> // dlopen, RTLD_LAZY, dlsym
 // #include <csignal>
 
+#include "inc/Clj/lang.CljString.hpp"
 #include "inc/Lexical.hpp"
 #include "inc/Control.hpp"
 #include "inc/Core.hpp"
@@ -29,17 +30,21 @@ bool runServer = true;
 Core* core = nullptr;
 
 int main(){
-    std::cout << "Hello World! v.a0.1.Tooling\n";
-
-    LOG_INIT( "Hello World! Middleware v.a0.1.Tooling\n" );
-
     Component::systemCommand( "rm *.log" );
     Component::systemCommand( "rm *.out" );
 
     Lexical* lex = new Lexical();
 
-    Config config(lex, nullptr);
+    Config config( lex, nullptr );
     config.loadConfig( CONFIG_FILE );
+
+    std::cout << "Hello World! v.a0.1.Tooling\n";
+    LOG_INIT( "Hello World! Middleware v.a0.1.Tooling\n" );
+
+    if (config.cfg( ATT_FRONT ) == CFG_ON ){
+        string command = "lite-server -c Config.lite-server.json & ";
+        Component::systemCommand(command); //, string filenaMeOut, string filenaMeErr);
+    }
     
     core = new Core(lex, &config);
     string script = "./scripts/middlenebel.nebel";

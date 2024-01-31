@@ -13,10 +13,13 @@
 #define ATT_USE_CONFIG              "useConfig"
 #define ATT_DUMP_CONFIG             "dumpConfig"
 #define ATT_SERVERPORT              "serverPort"
+#define ATT_FRONT                   "front"
 // ---------------------------------- CFG VALUES ---------
 #define CFG_TRUE                    "true"
 #define CFG_DEFAULT                 "Default"
 #define CFG_DEFAULT_PORT            "8080"
+#define CFG_ON                      "on"
+#define CFG_OFF                     "off"
 // -------------------------------------------------------
 #define IS_CONFIG( A, B) (config->cfg(A)==B)
 #define IS_NOT_CONFIG( A, B) (config->cfg(A)!=B)
