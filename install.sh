@@ -1,3 +1,4 @@
+#!/bin/bash
 
 echo "------------------------"
 echo "Middlenebel Installation"
@@ -16,7 +17,8 @@ echo
 
 read -p "Do you like continue with the installation [y/N]? " yesNoOption
 
-if [ yesNoOption -eq "y" ] then
+if [ yesNoOption -eq "y" ] 
+then
     exit 0
 fi
 
