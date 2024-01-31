@@ -51,7 +51,8 @@ if [ "$yesNoOption" = "y" ]; then
     cd build
     cmake ..
     make
-    sudo cp src/lib/libcppkafka.so /usr/lib
+    sudo cp src/lib/libcppkafka.so.* /usr/lib
+    sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
     cd ../..
 
     echo "-------------------------- Build Middlenebel"
