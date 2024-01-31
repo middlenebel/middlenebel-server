@@ -55,6 +55,8 @@ if [ "$yesNoOption" = "y" ]; then
     sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
     cd ../..
 
+
+
     echo "-------------------------- Build Middlenebel"
     cd middlenebel-server    
     make all

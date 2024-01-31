@@ -45,7 +45,10 @@ make
 sudo cp src/lib/libcppkafka.so.* /usr/lib
 sudo ln -s /usr/lib/libcppkafka.so.* /usr/lib/libcppkafka.so
 cd ../..
-	
+
+## Install Dockerd
+sudo apt install docker.io -y
+
 ## Download & Build Middlenebel Server
 git clone https://github.com/middlenebel/middlenebel-server.git
 cd middlenebel-server
@@ -55,8 +58,26 @@ echo "Installation finished!"
 echo "You can start the server with ./main"
 
 ## Build Front
+docker build -t my-angular-app .
+
+See: https://blog.back4app.com/how-to-deploy-an-angular-application/#Step_3_Dockerize_the_Application
+Run `npm audit` for details.
+npm notice 
+npm notice New minor version of npm available! 10.2.4 -> 10.4.0
+npm notice Changelog: <https://github.com/npm/cli/releases/tag/v10.4.0>
+npm notice Run `npm install -g npm@10.4.0` to update!
+npm notice 
+
+docker run -p 8080:80 my-angular-app
 
 ### Updating ng and npm
+sudo apt install npm
+sudo npm install -g npm@latest
+npm install lite-server --save-dev
+
+
+sudo apt install ng-common
+
 
 **npm**
 npm install npm@latest

@@ -4,7 +4,7 @@ useConfig Default
 Config: Default
     version 'Middlenebel V.a.0.1'
     serverPort 8080
-    front on
+    front off
 .
 Config: NotParse
     version 'Debuging server'
