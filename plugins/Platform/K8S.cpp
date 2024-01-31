@@ -276,7 +276,6 @@ string K8S::doDestroy(){
           result += (*aNamespace)->destroy();
      }
      return result + Component::doDestroy();
-     return result + Component::doDestroy();
 }
 
 string K8S::doQuit(){
