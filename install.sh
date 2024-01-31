@@ -53,5 +53,11 @@ if [ "$yesNoOption" = "y" ]; then
     make
     sudo cp src/lib/libcppkafka.so /usr/lib
     cd ../..
-    cd middlenebel-server
+
+    echo "-------------------------- Build Middlenebel"
+    cd middlenebel-server    
+    make all
+
+    echo "Installation finished!"
+    echo "You can start the server with ./main"
 fi
