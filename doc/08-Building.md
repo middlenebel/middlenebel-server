@@ -10,14 +10,49 @@ sudo chown -R owner:group directory
 ## Install g++
 sudo apt install g++
 
-## Install Make
+## Install Make & CMake
+sudo apt install make
+sudo apt install cmake
 
+## Install Boost
+sudo apt install libboost-all-dev
 
+## Install LibJson
+sudo apt-get install libjsoncpp-dev
+
+## Install LibRdKafka
+sudo apt-get install -y librdkafka-dev
+
+# Install MySQL Connector
+sudo apt-get install libmysqlcppconn-dev
+
+# Install kubect
+sudo apt update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+**This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list**
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get install -y kubectl
+
+## Download & Build LibCppKafka
+sudo apt install libssl-dev
+git clone https://github.com/mfontanini/cppkafka.git
+cd cppkafka
+mkdir build
+cd build
+cmake ..
+make
+sudo cp src/lib/libcppkafka.so.* /usr/lib
+sudo ln -s /usr/lib/libcppkafka.so.* /usr/lib/libcppkafka.so
+cd ../..
+	
 ## Download & Build Middlenebel Server
 git clone https://github.com/middlenebel/middlenebel-server.git
 cd middlenebel-server
 make all
 
+echo "Installation finished!"
+echo "You can start the server with ./main"
 
 ## Build Front
 

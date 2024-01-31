@@ -13,7 +13,7 @@
 #include <dlfcn.h> // dlopen, RTLD_LAZY, dlsym
 // #include <csignal>
 
-#include "inc/Clj/lang.CljString.hpp"
+// #include "clj/inc/lang.CljString.hpp"
 #include "inc/Lexical.hpp"
 #include "inc/Control.hpp"
 #include "inc/Core.hpp"
@@ -30,6 +30,10 @@ bool runServer = true;
 Core* core = nullptr;
 
 int main(){
+    // CljString deleteLogs = "rm *.log";
+
+    // cout << "Command " << deleteLogs;
+
     Component::systemCommand( "rm *.log" );
     Component::systemCommand( "rm *.out" );
 
