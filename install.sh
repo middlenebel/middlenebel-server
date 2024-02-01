@@ -77,8 +77,6 @@ if [ "$yesNoOption" = "y" ]; then
 
     echo "-------------------------- Download, build & Install CppKafka"
     sudo apt install libssl-dev
-    #cd ..
-    #cd ..
     git clone https://github.com/mfontanini/cppkafka.git
     cd cppkafka
     mkdir build
@@ -87,16 +85,12 @@ if [ "$yesNoOption" = "y" ]; then
     make
     sudo cp src/lib/libcppkafka.so.* /usr/lib
     sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
-    cd .. #cd ../..
-    cd .. #cd ../..
+    cd ..
 
-    echo "-------------------------- Build Nebel Web Server"
-    docker build -t nebel-web-server .
     echo "-------------------------- Build Nebel Web Server"
     docker build -t nebel-web-server .
 
     echo "-------------------------- Build Middlenebel"
-    cd middlenebel-server    
     make all
 
     echo "Installation finished!"
