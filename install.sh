@@ -11,6 +11,7 @@ echo
 echo "The next dependencies will be installed in your system:"
 echo
 echo " g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libssl, cppkafka"
+echo " g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libssl, cppkafka"
 echo
 echo "You will need administrative rights to install in your system!"
 echo
@@ -68,6 +69,7 @@ if [ "$yesNoOption" = "y" ]; then
     echo "-------------------------- Download, build & Install CppKafka"
     sudo apt install libssl-dev
     #cd ..
+    #cd ..
     git clone https://github.com/mfontanini/cppkafka.git
     cd cppkafka
     mkdir build
@@ -77,7 +79,10 @@ if [ "$yesNoOption" = "y" ]; then
     sudo cp src/lib/libcppkafka.so.* /usr/lib
     sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
     cd .. #cd ../..
+    cd .. #cd ../..
 
+    echo "-------------------------- Build Nebel Web Server"
+    docker build -t nebel-web-server .
     echo "-------------------------- Build Nebel Web Server"
     docker build -t nebel-web-server .
 
