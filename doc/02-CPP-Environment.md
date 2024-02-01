@@ -1,4 +1,16 @@
 
+# Start Front
+
+*ng serve*
+.../middlenebel-front$ ng serve --port 8081
+
+*lite-server*
+.../middlenebel-front$ npm run dev
+Note: the port is configured in package.json in definition of 'dev'
+
+*Docker*
+docker run -p 8081:80 my-angular-app
+
 
 # Configure IDE for debug
 

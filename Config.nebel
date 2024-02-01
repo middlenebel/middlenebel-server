@@ -1,5 +1,5 @@
 
-useConfig Default
+useConfig DEVELOP
 
 Config: Default
     version 'Middlenebel V.a.0.1'
@@ -7,6 +7,11 @@ Config: Default
     front docker
     frontPort 8081
     frontName 'my-angular-app'
+.
+Config: DEVELOP
+    version 'Middlenebel V.a.0.1 - DEVELOP'
+    serverPort 8080
+    front off
 .
 Config: NotParse
     version 'Debuging server'
