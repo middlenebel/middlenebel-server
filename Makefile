@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-CFLAGS=-Wall -g -Wno-comment -Wsign-compare -fPIC
+CFLAGS=-Wall -g -Wno-comment -Wsign-compare -fPIC -std=c++17 -lstdc++fs
 
 PLUGINS=-shared Util.o Lexical.o Component.o Core.o
 
@@ -9,7 +9,6 @@ all: build
 build: buildApp buildPlugins  
 
 buildApp:
-	clear
 	g++ -c -fPIC *.cpp ${CFLAGS}
 	g++ -o main *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so 
 

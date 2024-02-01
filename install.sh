@@ -17,75 +17,76 @@ echo
 echo You need git, apt, docker and kubectl installed in you Linux/WSL2. This will NOT DO it.
 echo
 doExit=0
-git --version >/dev/null 2>&1
-if (( $? != 0)); then
-    echo "!!! git not found !!!"
-    doExit=1
-fi
 apt --version >/dev/null 2>&1
 if (( $? != 0)); then
     echo "!!! apt not found !!!"
     doExit=1
 fi
-docker --version >/dev/null 2>&1
+git --version >/dev/null 2>&1
 if (( $? != 0)); then
-    echo "!!! docker not found !!!"
-    echo "See: https://docs.docker.com/desktop/wsl/"
-    doExit=1
+    echo "!!! git not found !!!"
+    doExit=2
 fi
 echo
 kubectl version >/dev/null 2>&1 
 if (( $? != 0)); then
     echo "!!! kubectl not found !!!"
     echo "See: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"
-    doExit=1
+    doExit=3
+fi
+docker --version >/dev/null 2>&1
+if (( $? != 0)); then
+    echo "!!! docker not found !!!"
+    echo "See: https://docs.docker.com/desktop/wsl/"
+    doExit=4
 fi
 echo
-if (( $doExit != 0)); then
-    echo "Required apt/docker/kubectl not found... Aborting installation!"
-    exit 1
-else
+if (( $doExit == 0)); then
     echo "Ok!!! docker & kubectl detected!"
+    
 fi
-
+if (( $doExit > 1)); then
+    echo "!!! Required apt/docker/kubectl not found... Aborting installation !!!"
+    exit $doExit
+fi
 read -p "Do you like continue with the installation [y/N]? " yesNoOption
 
 if [ "$yesNoOption" = "y" ]; then
     echo "-------------------------- Update apt"
-    sudo apt update
+    apt update
 
     echo "-------------------------- Install g++"
-    sudo apt install g++
+    apt install g++
 
     echo "-------------------------- Install Make"
-    sudo apt install make
+    apt install make
 
     echo "-------------------------- Install CMake"
-    sudo apt install cmake
+    apt install cmake
 
     echo "-------------------------- Install Boost"
-    sudo apt install libboost-all-dev
+    apt install libboost-all-dev
 
     echo "-------------------------- Install JSon"
-    sudo apt-get install libjsoncpp-dev
+    apt-get install libjsoncpp-dev
 
     echo "-------------------------- Install LibRdKafka"
-    sudo apt-get install -y librdkafka-dev
+    apt-get install -y librdkafka-dev
 
     echo "-------------------------- Install MySQL Connector"
-    sudo apt-get install libmysqlcppconn-dev
+    apt-get install libmysqlcppconn-dev
 
     echo "-------------------------- Download, build & Install CppKafka"
-    sudo apt install libssl-dev
+    apt install libssl-dev
     git clone https://github.com/mfontanini/cppkafka.git
     cd cppkafka
     mkdir build
     cd build
     cmake ..
     make
-    sudo cp src/lib/libcppkafka.so.* /usr/lib
-    sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
-    cd ..
+    cp src/lib/libcppkafka.so.* /usr/lib
+    ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
+    cd ../..
 
     echo "-------------------------- Build Nebel Web Server"
     docker build -t nebel-web-server .

@@ -1,11 +1,10 @@
 
-# Hot-to Build Middlenebel
+# How-to Build Middlenebel-Server
 
-sudo chown -R owner:group directory
+## Requirements
+You will need some common utilities that will not explained in this text:
 
-## Build Server
-
-## Install Git
+apt, git, docker, kubectl.
 
 ## Install g++
 sudo apt install g++
@@ -26,15 +25,9 @@ sudo apt-get install -y librdkafka-dev
 # Install MySQL Connector
 sudo apt-get install libmysqlcppconn-dev
 
-# Install kubect
-sudo apt update
-sudo apt-get install -y apt-transport-https ca-certificates curl
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-**This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list**
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get install -y kubectl
-
 ## Download & Build LibCppKafka
+You can do this in the middlenebel-server folder or outside of it.
+
 sudo apt install libssl-dev
 git clone https://github.com/mfontanini/cppkafka.git
 cd cppkafka
@@ -45,9 +38,6 @@ make
 sudo cp src/lib/libcppkafka.so.* /usr/lib
 sudo ln -s /usr/lib/libcppkafka.so.* /usr/lib/libcppkafka.so
 cd ../..
-
-## Install Dockerd
-sudo apt install docker.io -y
 
 ## Download & Build Middlenebel Server
 git clone https://github.com/middlenebel/middlenebel-server.git
