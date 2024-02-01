@@ -60,7 +60,6 @@ if [ "$yesNoOption" = "y" ]; then
     ln -s ../../lib/libcppkafka.so.* ../../lib/libcppkafka.so
     cd ../..
     #rm -rf cppkafka
-    #rm -rf cppkafka
     echo "-------------------------- Building Middlenebel..."
     make all
 
