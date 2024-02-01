@@ -68,7 +68,7 @@ npm notice Changelog: <https://github.com/npm/cli/releases/tag/v10.4.0>
 npm notice Run `npm install -g npm@10.4.0` to update!
 npm notice 
 
-docker run -p 8080:80 my-angular-app
+docker run -p 8081:80 my-angular-app
 
 ### Updating ng and npm
 sudo apt install npm

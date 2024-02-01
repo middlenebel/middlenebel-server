@@ -45,11 +45,16 @@ int main(){
     std::cout << "Hello World! v.a0.1.Tooling\n";
     LOG_INIT( "Hello World! Middleware v.a0.1.Tooling\n" );
 
-    if (config.cfg( ATT_FRONT ) == CFG_ON ){
+    if (config.cfg( ATT_FRONT ) == CFG_LITE ){
         string command = "lite-server -c Config.lite-server.json & ";
         Component::systemCommand(command); //, string filenaMeOut, string filenaMeErr);
+    }else if (config.cfg( ATT_FRONT ) == CFG_DOCKER ){
+        string frontPort = config.cfg(ATT_FRONTPORT, CFG_FRONTPORT);
+        string frontName = config.cfg(ATT_FRONTNAME, CFG_FRONTNAME);
+        string command = "docker run -p "+frontPort+":80 "+frontName+" & ";
+        Component::systemCommand(command);
     }
-    
+
     core = new Core(lex, &config);
     string script = "./scripts/middlenebel.nebel";
 
@@ -58,7 +63,7 @@ int main(){
     LOG( "Core inited!" );
     core->load( script );
 
-    int serverPort = stoi( core->config->cfg( ATT_SERVERPORT, CFG_DEFAULT_PORT) );
+    short unsigned int serverPort = stoi( core->config->cfg( ATT_SERVERPORT, CFG_DEFAULT_PORT) );
     runServer = config.cfg( ATT_DISABLE_SERVER ) != CFG_TRUE;
     if (runServer){
         LOG( "Starting server in port " << serverPort );

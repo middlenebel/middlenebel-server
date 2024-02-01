@@ -14,12 +14,18 @@
 #define ATT_DUMP_CONFIG             "dumpConfig"
 #define ATT_SERVERPORT              "serverPort"
 #define ATT_FRONT                   "front"
-// ---------------------------------- CFG VALUES ---------
+#define ATT_FRONTPORT               "frontPort"
+#define ATT_FRONTNAME               "frontName"
+// ----------------------------- CFG DEFAULT VALUES ------
 #define CFG_TRUE                    "true"
 #define CFG_DEFAULT                 "Default"
 #define CFG_DEFAULT_PORT            "8080"
 #define CFG_ON                      "on"
 #define CFG_OFF                     "off"
+#define CFG_LITE                    "lite"
+#define CFG_DOCKER                  "docker"
+#define CFG_FRONTPORT               "8081"
+#define CFG_FRONTNAME               "my-angular-app"
 // -------------------------------------------------------
 #define IS_CONFIG( A, B) (config->cfg(A)==B)
 #define IS_NOT_CONFIG( A, B) (config->cfg(A)!=B)
