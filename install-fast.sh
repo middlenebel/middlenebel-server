@@ -53,16 +53,13 @@ read -p "Do you like continue with the installation [y/N]? " yesNoOption
 if [ "$yesNoOption" = "y" ]; then
     echo "-------------------------- Installing dependencies..."
     apt install make cmake libboost-all-dev librdkafka-dev libssl-dev libjsoncpp-dev libmysqlcppconn-dev
-    git clone https://github.com/middlenebel/middlenebel-server.git
-    cd middlenebel-server
-    git clone https://github.com/mfontanini/cppkafka.git
-    cd cppkafka
+    cd middlenebel-server/cppkafka
     mkdir build; cd build
     cmake ..; make
     cp src/lib/libcppkafka.so.* ../../lib
     ln -s ../../lib/libcppkafka.so.* ../../lib/libcppkafka.so
     cd ../..
-    rm -rf cppkafka
+    #rm -rf cppkafka
     echo "-------------------------- Building Middlenebel..."
     make all
 
