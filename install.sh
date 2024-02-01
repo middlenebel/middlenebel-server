@@ -14,9 +14,14 @@ echo " g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libs
 echo
 echo "You will need administrative rights to install in your system!"
 echo
-echo You need appt, docker and kubectl installed in you Linux/WSL2. This will NOT DO it.
+echo You need git, apt, docker and kubectl installed in you Linux/WSL2. This will NOT DO it.
 echo
 doExit=0
+git --version >/dev/null 2>&1
+if (( $? != 0)); then
+    echo "!!! git not found !!!"
+    doExit=1
+fi
 apt --version >/dev/null 2>&1
 if (( $? != 0)); then
     echo "!!! apt not found !!!"
