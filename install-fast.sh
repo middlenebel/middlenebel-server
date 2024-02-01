@@ -52,15 +52,16 @@ read -p "Do you like continue with the installation [y/N]? " yesNoOption
 
 if [ "$yesNoOption" = "y" ]; then
     echo "-------------------------- Installing dependencies..."
-    apt install make cmake libboost-all-dev librdkafka-dev libssl-dev libjsoncpp-dev libmysqlcppconn-dev
+    apt install make cmake librdkafka-dev libssl-dev libjsoncpp-dev libmysqlcppconn-dev
     cd cppkafka
     mkdir build; cd build
     cmake ..; make
     cp src/lib/libcppkafka.so.* ../../lib
-    ln -s ../../lib/libcppkafka.so.* ../../lib/libcppkafka.so
-    cd ../..
+    cd ../../lib
+    ln -s libcppkafka.so.* libcppkafka.so
+    cd ..
     #rm -rf cppkafka
-    echo "-------------------------- Building Middlenebel..."
+libssl    echo "-------------------------- Building Middlenebel..."
     make all
 
     echo "Installation finished!"

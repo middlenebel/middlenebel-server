@@ -1,29 +1,48 @@
 # Build the app in image ‘builder’ (multi-stage builds)
-#FROM node:20 as builder
+FROM debian as builder
+
+RUN apt-get update && apt-get install -y \
+    make cmake librdkafka-dev libssl-dev libjsoncpp-dev libmysqlcppconn-dev \
+    python3-launchpadlib clang clang-tools libz-dev g++
 
 # Define working directory
-#WORKDIR /app
-
-# Duplicate the package-lock.json and package.json prior to other files
-#COPY package*.json ./
+WORKDIR /app
 
 # Duplicate all necessary files
-#COPY . .
-# Set up project dependencies
-#RUN npm install
+COPY . .
 
-# Compile the Angular application
-#RUN npm run build -prod
+RUN rm -rf ./cppkafka/build || true
 
-# Use nginx server to deliver the application
-FROM nginx:alpine
+WORKDIR /app/cppkafka/build
 
-# Define working directory
-#WORKDIR /app
+RUN cmake /app/cppkafka
+RUN make
+RUN cp src/lib/* ../../lib
 
-# Transfer the output of the build step
-#COPY --from=builder /app/dist/moskis-0/ /usr/share/nginx/html/
-COPY ./dist/ /usr/share/nginx/html/
+# Compile Middlenebel
+WORKDIR /app
+RUN make all
 
-# Replace the default nginx configuration with the one provided by tiangolo/node-frontend
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# Use alpine server to deliver the application
+FROM alpine:3.4
+
+USER 0
+RUN mkdir -p /usr/local/middlenebel/plugins
+RUN mkdir -p /usr/local/middlenebel/cfgPlugins
+RUN mkdir -p /usr/local/middlenebel/scripts/sql
+RUN mkdir -p /lib/x86_64-linux-gnu
+
+COPY --from=builder /app/lib/* /usr/lib/
+RUN ln -s /usr/lib/libcppkafka.so.* /usr/lib/libcppkafka.so
+COPY --from=builder /app/plugins/*.so /usr/local/middlenebel/plugins/
+COPY --from=builder /app/cfgPlugins/* /usr/local/middlenebel/plugins/
+COPY --from=builder /app/main /usr/local/middlenebel/main
+COPY --from=builder /app/*.nebel /usr/local/middlenebel/
+COPY --from=builder /app/scripts/*.nebel /usr/local/middlenebel/scripts/
+COPY --from=builder /app/scripts/sql/*.sql /usr/local/middlenebel/scripts/sql/
+
+COPY --from=builder /lib/x86_64-linux-gnu/libjsoncpp.so /lib/x86_64-linux-gnu/libjsoncpp.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/librdkafka.so /usr/lib/x86_64-linux-gnu/librdkafka.so
+USER $CONTAINER_USER_ID
+
