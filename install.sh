@@ -10,10 +10,33 @@ echo "You can abort the script and do it manually, see: doc/08-Building.md for i
 echo
 echo "The next dependencies will be installed in your system:"
 echo
-echo " g++, Make, libboost-all-dev, librdkafka-dev"
+echo " g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libssl, cppkafka"
 echo
 echo "You will need administrative rights to install in your system!"
 echo
+echo You need docker and kubectl installed in you Linux/WSL2. This will NOT DO it.
+echo
+doExit=0
+docker --version >/dev/null 2>&1
+if (( $? != 0)); then
+    echo "!!! docker not found !!!"
+    echo "See: https://docs.docker.com/desktop/wsl/"
+    doExit = 1
+fi
+echo
+kubectl version >/dev/null 2>&1 
+if (( $? != 0)); then
+    echo "!!! kubectl not found !!!"
+    echo "See: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"
+    doExit = 1
+fi
+echo
+if (( $doExit != 0)); then
+    echo "Required docker/kubectl not found... Aborting installation!"
+    exit 1
+else
+    echo "Ok!!! docker & kubectl detected!"
+fi
 
 read -p "Do you like continue with the installation [y/N]? " yesNoOption
 
@@ -44,7 +67,7 @@ if [ "$yesNoOption" = "y" ]; then
 
     echo "-------------------------- Download, build & Install CppKafka"
     sudo apt install libssl-dev
-    cd ..
+    #cd ..
     git clone https://github.com/mfontanini/cppkafka.git
     cd cppkafka
     mkdir build
@@ -53,9 +76,10 @@ if [ "$yesNoOption" = "y" ]; then
     make
     sudo cp src/lib/libcppkafka.so.* /usr/lib
     sudo ln -s /usr/lib/libcppkafka.so.0.4.1 /usr/lib/libcppkafka.so
-    cd ../..
+    cd .. #cd ../..
 
-
+    echo "-------------------------- Build Nebel Web Server"
+    docker build -t nebel-web-server .
 
     echo "-------------------------- Build Middlenebel"
     cd middlenebel-server    
