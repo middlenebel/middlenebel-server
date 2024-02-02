@@ -11,20 +11,23 @@ WORKDIR /app
 # Duplicate all necessary files
 COPY . .
 
-RUN rm -rf ./cppkafka/build || true
+RUN rm -rf ./third_party/cppkafka/build || true
 
-WORKDIR /app/cppkafka/build
+WORKDIR /app/third_party/cppkafka/build
 
-RUN cmake /app/cppkafka
+RUN cmake /app/third_party/cppkafka
 RUN make
-RUN cp src/lib/* ../../lib
 
 # Compile Middlenebel
 WORKDIR /app
 RUN make all
 
 # Use alpine server to deliver the application
-FROM alpine:3.4
+# Not good for dinamic libraries FROM alpine:3.4
+#FROM scratch
+# FROM debian:buster
+#FROM ubuntu:22.04
+FROM debian
 
 USER 0
 RUN mkdir -p /usr/local/middlenebel/plugins
@@ -32,8 +35,7 @@ RUN mkdir -p /usr/local/middlenebel/cfgPlugins
 RUN mkdir -p /usr/local/middlenebel/scripts/sql
 RUN mkdir -p /lib/x86_64-linux-gnu
 
-COPY --from=builder /app/lib/* /usr/lib/
-RUN ln -s /usr/lib/libcppkafka.so.* /usr/lib/libcppkafka.so
+COPY --from=builder /app/third_party/cppkafka/build/src/lib/* /usr/lib/
 COPY --from=builder /app/plugins/*.so /usr/local/middlenebel/plugins/
 COPY --from=builder /app/cfgPlugins/* /usr/local/middlenebel/plugins/
 COPY --from=builder /app/main /usr/local/middlenebel/main
@@ -41,8 +43,24 @@ COPY --from=builder /app/*.nebel /usr/local/middlenebel/
 COPY --from=builder /app/scripts/*.nebel /usr/local/middlenebel/scripts/
 COPY --from=builder /app/scripts/sql/*.sql /usr/local/middlenebel/scripts/sql/
 
-COPY --from=builder /lib/x86_64-linux-gnu/libjsoncpp.so /lib/x86_64-linux-gnu/libjsoncpp.so
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
-COPY --from=builder /usr/lib/x86_64-linux-gnu/librdkafka.so /usr/lib/x86_64-linux-gnu/librdkafka.so
+#COPY --from=builder /lib/x86_64-linux-gnu/libjsoncpp.* /lib/x86_64-linux-gnu/
+# COPY --from=builder /usr/lib/x86_64-linux-gnu/libmysqlcppconn.* /usr/lib/x86_64-linux-gnu/
+# COPY --from=builder /usr/lib/x86_64-linux-gnu/librdkafka.* /usr/lib/x86_64-linux-gnu/
+
+#COPY --from=builder /lib/x86_64-linux-gnu/* /lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/
+
+RUN chmod 775 /usr/local/middlenebel
+RUN chmod 775 /usr/local/middlenebel/plugins/*
+RUN chmod 775 /usr/local/middlenebel/*
+RUN chmod 775 /usr/local/middlenebel/scripts
+RUN chmod 776 /usr/local/middlenebel/scripts/*.nebel
+RUN chmod 775 /usr/local/middlenebel/scripts/sql
+RUN chmod 776 /usr/local/middlenebel/scripts/sql/*.sql
+
 USER $CONTAINER_USER_ID
+
+#ENTRYPOINT ["/usr/local/middlenebel/main"]
+#RUN /usr/local/middlenebel/main
 

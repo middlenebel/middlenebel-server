@@ -1,3 +1,6 @@
 [submodule "cppkafka"]
 	path = cppkafka
 	url = https://github.com/mfontanini/cppkafka.git
+[submodule "third_party/cppkafka"]
+	path = third_party/cppkafka
+	url = https://github.com/mfontanini/cppkafka.git

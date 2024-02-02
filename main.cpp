@@ -51,8 +51,9 @@ int main(){
     }else if (config.cfg( ATT_FRONT ) == CFG_DOCKER ){
         string frontPort = config.cfg(ATT_FRONTPORT, CFG_FRONTPORT);
         string frontName = config.cfg(ATT_FRONTNAME, CFG_FRONTNAME);
+        std::cout << "Starting docker Nebel-web in port " << frontPort;
         string command = "docker run -p "+frontPort+":80 "+frontName+" & ";
-        Component::systemCommand(command);
+        Component::systemCommand(command, "front-start.out", "front-error.out");
     }
 
     core = new Core(lex, &config);
