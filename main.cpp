@@ -55,7 +55,6 @@ int main(){
         Component::systemCommand(command);
     }
 
-    // TODO Lexical* lex2 = new Lexical();
     core = new Core(lex, &config);
     string script = "./scripts/middlenebel.nebel";
 
