@@ -1,0 +1,31 @@
+
+useConfig Default
+
+// FRONT---web--------> WEBPORT [WebAngular ]---( liteServer / docker )
+// FRONT---comands----> PROXYPORT [Proxy ] ----> NEBELPORT [NEBELDOCKER]
+
+Config: Default
+    version 'Middlenebel v0.1.3-alpha Nebel-Docker'
+    webPort 3000
+    proxyPort 8081
+    nebelPort 8080
+    front off //lite //docker
+    frontName 'my-angular-app'
+.
+Config: DEVELOP
+    version 'Middlenebel v0.1.3-alpha Nebel-Docker - DEVELOP'
+    proxyPort 8080
+    front off
+.
+Config: NotParse
+    version 'Middlenebel v0.1.3-alpha Nebel-Docker - Debuging server'
+    disableParse true
+    dumpConfig true
+    serverPort 8080
+.
+Config: NotServer
+    version 'Middlenebel v0.1.3-alpha Nebel-Docker - Debuging parser'
+    disableServer true
+    dumpConfig true
+    serverPort 8080
+.

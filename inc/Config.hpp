@@ -5,6 +5,7 @@
 #include "../inc/Component.hpp"
 #include "../inc/Lexical.hpp"
 
+#define VERSION "Middlenebel v0.1.3-alpha Nebel-Docker"
 // -------------------------------------------------------
 #define CONFIG_FILE "./Config.nebel"
 // ---------------------------------- ATTRIBUTES ---------

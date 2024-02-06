@@ -5,7 +5,7 @@ ln -s $PWD/boost_1_82_0/boost ./cppkafka/include/cppkafka/boost || true
 cd cppkafka
 rm -rf build || true
 mkdir -p build; cd build
-cmake ..; make
+cmake .. -DCPPKAFKA_DISABLE_EXAMPLES=ON ; make
 if (( $? != 0)); then
     echo "!!! ERROR !!!"
     exit $?

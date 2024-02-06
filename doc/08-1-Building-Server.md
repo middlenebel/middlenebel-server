@@ -68,7 +68,7 @@ Installation finished!
 You can start the server with ./main
 
 ## Running Front
-The middlenebel-server includes a static version of the angular fornt application.
+The middlenebel-server includes a static version of the angular front application.
 
 Yo can download and run the front separatelly, see **08-2-Building-Front.md** for instructions.
 
@@ -91,3 +91,46 @@ docker build -t nebel-web-server .
 Then run the server:
 
 docker run -p 8081:80 nebel-web-server & 
+
+# Third_party 
+This application include several third_party modules.
+
+To update the third_party modules you can use:
+
+git submodule update --init --recursive
+
+But this not give warranties because third_parties can be more avanced in changes not supported for this version.
+
+**boost**
+https://stackoverflow.com/questions/3016448/how-can-i-get-cmake-to-find-my-alternative-boost-installation
+I was finally able to get what I wanted with
+
+cmake -DCMAKE_INSTALL_PREFIX=$TARGET \
+    -DBoost_NO_BOOST_CMAKE=TRUE \
+    -DBoost_NO_SYSTEM_PATHS=TRUE \
+    -DBOOST_ROOT:PATHNAME=$TARGET \
+    -DBoost_LIBRARY_DIRS:FILEPATH=${TARGET}/lib
+
+For cppkafka
+
+cmake .. -DBoost_NO_BOOST_CMAKE=TRUE \
+    -DBoost_NO_SYSTEM_PATHS=TRUE \
+    -DBOOST_ROOT:PATHNAME=$TARGET \
+    -DCPPKAFKA_DISABLE_EXAMPLES=ON
+
+cpp-httplib
+    mkdir -p build
+	cd build
+	cmake -DCMAKE_BUILD_TYPE=Release ..
+	sudo cmake --build . --target install
+
+    punksystec@LAPTOP-CPH12905:~/projects/cpp-httplib/build$ sudo cmake --build . --target install
+[sudo] password for punksystec:
+Install the project...
+-- Install configuration: ""
+-- Installing: /usr/local/include/httplib.h
+-- Installing: /usr/local/lib/cmake/httplib/httplibConfig.cmake
+-- Installing: /usr/local/lib/cmake/httplib/httplibConfigVersion.cmake
+-- Installing: /usr/local/lib/cmake/httplib/FindBrotli.cmake
+-- Installing: /usr/local/lib/cmake/httplib/httplibTargets.cmake
+punksystec@LAPTOP-CPH12905:~/projects/cpp-httplib/build$

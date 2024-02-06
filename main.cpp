@@ -42,8 +42,9 @@ int main(){
     Config config( lex, nullptr );
     config.loadConfig( CONFIG_FILE );
 
-    std::cout << "Hello World! v.a0.1.Tooling\n";
-    LOG_INIT( "Hello World! Middleware v.a0.1.Tooling\n" );
+    string nebelVersion = config.cfg( VERSION, "Middlenebel v0.1.3-alpha Nebel-Docker" );
+    std::cout << "Hello World!  " << nebelVersion << "\n";
+    LOG_INIT( "Hello World! " << nebelVersion << "\n" );
 
     if (config.cfg( ATT_FRONT ) == CFG_LITE ){
         string command = "lite-server -c Config.lite-server.json & ";
@@ -147,30 +148,7 @@ int main(){
         }
         runServer = !core->quit;
     }
-    // while ( runServer ){
-    //     // long long used = control.getUsedMemory();
-    //     LOG( "Starting server..." );
-        
-    //     Lexical* lex = new Lexical();
-    //     core = new Core(lex, SERVER_PORT);
-
-    //     LOG( "Core inited!" );
-    //     core->load( script );
-
-    //     runServer = core->runServer();
-
-    //     if (core->newFileName != "")
-    //         script = core->newFileName;
-
-    //     LOG( "Main.doQuit!" );
-
-    //     LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
-    //     core->doQuit();
-    //     LOG(  "Clean result objects: " + to_string( core->getObjectNum() ) );
-
-    //     delete(core);
-    //     delete(lex);
-    // }
+    
     LOG( "Main.doQuit!" );
 
     LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
