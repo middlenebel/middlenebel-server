@@ -24,11 +24,6 @@
 
 using namespace std;
 
-// struct Server{
-//     void operator() (std::promise<int>&& reloadPromise, HttpServer &svr, unsigned short nebelPort ) const {
-//         svr.listen("0.0.0.0", nebelPort);
-//     }
-// };
 HttpServer svr;
 // @See: https://www.modernescpp.com/index.php/promise-and-future/
 void server_func(std::promise<int>&& reloadPromise ){

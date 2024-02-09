@@ -100,6 +100,7 @@ bool Core::getDestroy(const Request &req, Response &res){
     string message = doDestroy();
     string json = "{ \"result\" : \"OK\" , \"message\" : \"Destroy success!\" }";
     res.set_content(json, "application/json"); 
+    reloadPromise.set_value(1);
     return RELOAD_TRUE;
 }
 bool Core::getQuit(const Request &req, Response &res){ 
@@ -123,6 +124,7 @@ bool Core::postSaveScript(const Request &req, Response &res){
     save( fileName, script );
     string json = "{ \"result\" : \"OK\" , \"message\" : \"Save success!\" }";
     res.set_content(json, "application/json"); 
+    reloadPromise.set_value(1);
     return RELOAD_TRUE;
 }
 bool Core::postBrowserReload(const Request &req, Response &res){ 
@@ -134,8 +136,10 @@ bool Core::postBrowserAction(const Request &req, Response &res){
     string action = req.body;
     string json = doBrowserAction(action);
     res.set_content(json, "application/json"); 
-    if (this->newFileName != "")
+    if (this->newFileName != ""){
+        reloadPromise.set_value(1);
         return RELOAD_TRUE;
+    }
     return RELOAD_FALSE;
 }
 bool Core::getLog(const Request &req, Response &res){ 
@@ -337,7 +341,7 @@ string Core::execute( string json){
         return (string)"{ \"result\" : \"KO\" , \"message\" : \"Error parsing actions json!\" }";
     }
 
-    const Json::Value actionValue = actionJson["action"];
+    const Json::Value actionValue = actionJson["action"]; 
     string actionStr = actionValue.asString();
 
     if (actionStr==EXECUTOR_PORTFORWARD){
