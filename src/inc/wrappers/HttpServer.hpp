@@ -42,6 +42,8 @@ class HttpServer{
     public:
 
     using Handler = std::function<void(const Request &, Response &)>;
+    
+    HttpServer& Options(const std::string opt, httplib::Server::Handler handler){ svr.Options( opt, handler ); return *this; }
 
     bool listen(const std::string host, int port){  return svr.listen(host, port); }
     

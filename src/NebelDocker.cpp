@@ -45,6 +45,7 @@ int main(){
     Component::systemCommand( "rm *.log" );
     Component::systemCommand( "rm *.out" );
 
+    //TODO 
     Core* core = Core::getInstance();
     Config config( core );
     config.loadConfig( CONFIG_FILE );
@@ -56,8 +57,8 @@ int main(){
     LOG_INIT( "Hello World!\n" );
 
     string script = "./scripts/middlenebel.nebel";
+    core->load( script ); //TODO CAll from proxy. If script dont exists ERROR
 
-    //core->load( script );
     LOG( "Core ready!" );
     std::cout << "Core ready!\n";
 
@@ -70,14 +71,15 @@ int main(){
         //res.set_content("Up!", "text/plain");
     })
     .Get("/components", [](const Request &req, Response &res) {
+        cout << "Nebel - Get Components \n";
         Core::getInstance()->getComponents(req, res);
+        //res.set_content("Up!", "text/plain");
     })
     .Get("/play", [](const Request &req, Response &res) {    Core::getInstance()->getPlay(req, res); })
     .Get("/destroy", [](const Request &req, Response &res) { Core::getInstance()->getDestroy(req, res); })
     .Get("/reload", [](const Request &req, Response &res) {  Core::getInstance()->getReload(req, res); })
     .Post("/save-script", [](const Request &req, Response &res) {       Core::getInstance()->postSaveScript(req, res); })
     .Post("/browserReload", [](const Request &req, Response &res) {     Core::getInstance()->postBrowserReload(req, res); })
-    .Post("/browserReload", [](const Request &req, Response &res) {     Core::getInstance()->postBrowserAction(req, res); })
     .Get("/getLog", [](const Request &req, Response &res) {      Core::getInstance()->getLog(req, res); })
     .Get("/clearLog", [](const Request &req, Response &res) {    Core::getInstance()->getClearLog(req, res); })
     .Post("/executeAction", [](const Request &req, Response &res) { Core::getInstance()->getExecuteAction(req, res); });

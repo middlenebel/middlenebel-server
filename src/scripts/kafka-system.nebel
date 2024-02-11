@@ -1,0 +1,41 @@
+//Kafka-System
+Debug on
+Platform: Middlenebel
+    DockerDesktop.
+    K8S:
+        CreateNamespaces: kafka.
+        namespace kafka
+        Deployment: websensi3
+            image 'nginx:1.14.2'
+            containerPort 80
+        .
+        Deployment: zookeeper
+            hostname zoo1
+            image 'wurstmeister/zookeeper'
+            imagePullPolicy IfNotPresent //TODO
+            containerPort 2181
+        .
+        Service: zookeeper
+            type NodePort
+            port 2181
+            nodePort 30181
+            targetPort 2181
+        .
+        Deployment: kafka-broker
+            hostname broker1
+            image 'wurstmeister/kafka'
+            imagePullPolicy IfNotPresent //TODO
+            containerPort 9092
+            Env:
+                KAFKA_BROKER_ID 1
+                KAFKA_ZOOKEEPER_CONNECT 'zookeeper:2181'
+                KAFKA_LISTENERS 'PLAINTEXT://:9092'
+                KAFKA_ADVERTISED_LISTENERS 'PLAINTEXT://kafka-broker:9092'
+                KAFKA_CREATE_TOPICS 'admintome-test:1:1'
+            .
+        .
+        Service: kafka-broker
+            port 9092
+        .
+    .
+.

@@ -116,6 +116,7 @@
 }
 
 using namespace std;
+class Core;
 
 class Component : public enable_shared_from_this<Component>{
     private:
@@ -147,6 +148,7 @@ class Component : public enable_shared_from_this<Component>{
 
         Component();
         Component(Component* parent);
+        Core* getCore();
 
         virtual int getObjectNum();
 
@@ -186,15 +188,18 @@ class Component : public enable_shared_from_this<Component>{
         static string systemCommand(string command, 
             string filenaMeOut = "system_command.out",
             string filenaMeErr = "system_error.out" );
+        string systemCommandList( 
+            string command , string appName, string nameSpace, 
+            string port, string msg, 
+            string fileName="", string fileContent="");
 
         virtual void parse();
         virtual string doPlay();
         virtual string doDestroy();
         virtual string doQuit();
 
-        virtual void startPortForward(PortForward* pf);
-        // virtual void startPortForward(string app, string nameSpace, string port);
-        virtual void stopPortForward(PortForward* pf);
+        virtual string startPortForward(PortForward* pf);
+        virtual string stopPortForward(PortForward* pf);
 };
 
 #endif // !defined( COMPONENT_H )

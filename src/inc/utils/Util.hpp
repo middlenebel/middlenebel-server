@@ -44,8 +44,9 @@ class Util{
 
     static time_t now();
     static string loadFile(string file);
+    static void writeFile(string file, string content);
     static void emptyFile(string file);
-    static const string getHttp(string theHost, string thePort, string theTarget);
+    //static const string getHttp(string theHost, string thePort, string theTarget);
     static bool endsWith(string data, string sufix);
 };
 
@@ -91,7 +92,7 @@ class Util{
 
 #define LIST_TO_STRING(LIST, TARGET) { \
     for (std::list<string>::iterator child = LIST.begin(); child != LIST.end(); ++child){ \
-        TARGET += (string)"\"" + (*child) + "\""; \
+        TARGET += (*child); \
         TARGET += (std::next(child) != LIST.end() ? ",\n" : "\n");\
     } \
 }

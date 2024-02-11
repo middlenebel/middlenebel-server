@@ -52,10 +52,24 @@ class HttpClient : public httplib::Client{
     //inline 
     Result Get(const std::string &path) { 
       std::cout << "HttpClient - Get " << path << "\n";
-      // return static_cast<Result>( httplib::Client::Get(path) );
       if (HttpClient::Result resCli = httplib::Client::Get( path )) { 
         if (resCli->status == httplib::StatusCode::OK_200) {
           std::cout << "HttpClient - Get response: " << resCli.value().body << "\n";
+          return resCli; 
+        }
+      }
+      HttpClient::Result error; //TODO define error
+      return ( error );
+    }
+    //inline 
+    Result Post(const std::string &path, const std::string params) { 
+      std::cout << "HttpClient - Post " << path << "\n";
+      // return static_cast<Result>( httplib::Client::Get(path) );
+      // cli.Post("/ptz.cmd", "pan_left=50", "application/x-www-form-urlencoded");
+      //application/octet-stream
+      if (HttpClient::Result resCli = httplib::Client::Post( path, params, "application/x-www-form-urlencoded")) { 
+        if (resCli->status == httplib::StatusCode::OK_200) {
+          std::cout << "HttpClient - Post response: " << resCli.value().body << "\n";
           return resCli; 
         }
       }

@@ -373,7 +373,8 @@ void Component::startPortForward(PortForward* pf){
         +" -n "+ pf->nameSpace 
         + " &";
     
-    systemCommand( command , "portforward.out", "portforward_error.out");
+    //Now CommandList. Deprecated: systemCommand( command , "portforward.out", "portforward_error.out");
+    systemCommandList( command , "portforward.out", "portforward_error.out");
     LOG( "PortForward running for "<< pf->appName <<" port "<< pf->port );
     portForwardInited = true;
 }

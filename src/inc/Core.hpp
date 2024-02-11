@@ -70,6 +70,8 @@ class Core : public Component{
         bool quit;
 
         std::map<string, PortForward*> portForwards;
+        std::list<string> commandList;
+
         static Core* getInstance();
         Core(Core*) = delete;
         void operator=(const Core &) = delete;
@@ -92,8 +94,8 @@ class Core : public Component{
         string execute( string json);
 
         void createPortForward(string actionPF, string app, string port, string naMespace);
-        void startAllPortforwards();
-        void stopAllPortforwards();
+        string startAllPortforwards();
+        string stopAllPortforwards();
 
         virtual string doQuit();
 

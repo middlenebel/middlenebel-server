@@ -10,6 +10,7 @@
 // Wrappers
 #include "inc/wrappers/HttpServer.hpp"
 #include "inc/wrappers/HttpClient.hpp"
+#include <jsoncpp/json/json.h>
 
 // #include "clj/inc/lang.CljString.hpp"
 #include "inc/Lexical.hpp"
@@ -20,13 +21,26 @@
 #define SERVER_REINTENTS 3
 
 using namespace std;
+string executeCommandList( string commandList);
 
 int main(){
     bool runServer = true;
     HttpServer svr;
 
-    Component::systemCommand( "rm *.log" );
-    Component::systemCommand( "rm *.out" );
+    // svr.Options(R"(\*)", [](const auto& req, auto& res) {
+    //     res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
+    // });
+
+    // svr.Options("/components", [](const auto& req, auto& res) {
+    //     res.set_header("Access-Control-Allow-Origin", "*" ); //req.get_header_value("Origin").c_str());
+    //     res.set_header("Access_Control_Allow_Credentials", "true" );
+    //     // res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
+    //     // res.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Accept, Origin, Authorization");
+    //     // res.set_header("Access-Control-Allow-Methods", "OPTIONS, GET, POST, HEAD");
+    // });
+
+    // Component::systemCommand( "rm *.log" );
+    // Component::systemCommand( "rm *.out" );
 
     Config config( nullptr );
     config.loadConfig( CONFIG_FILE );
@@ -56,8 +70,9 @@ std::cout << "nebelPort...\n";
 
     string script = "./scripts/middlenebel.nebel";
 
-std::cout << "GET hi...\n"; 
     svr.Get("/hi", [scheme_host_port](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );
         cout << "PROXY/hi Received" << "\n";
         HttpClient cli( scheme_host_port );
         if (HttpClient::Result resCli = cli.Get("/hi")) {
@@ -70,38 +85,71 @@ std::cout << "GET hi...\n";
         }
         //res.set_content("Hello World!kkkk", "text/plain");
     });
-std::cout << "GET components...\n"; 
-    svr.Get("/components", [scheme_host_port](const Request &, Response &res) {
+
+    svr.Get("/components", [scheme_host_port](const Request &, Response &res){
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );
         cout << "PROXY/components Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/components")) { 
-            res.status = resCli.value().status;
-            res.body = resCli.value().body;
+            res.set_content(resCli.value().body, "application/json");
          }
-        //res.set_content("Hello World!", "text/plain");
     });
     svr.Get("/play", [scheme_host_port](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
         cout << "PROXY/play Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/play")) { 
             res.status = resCli.value().status;
-            res.body = resCli.value().body;
+            res.body = executeCommandList( resCli.value().body );
         }
         // res.set_content("Hello World!", "text/plain");
     });
     svr.Get("/destroy", [scheme_host_port](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
         cout << "PROXY/destroy Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/destroy")) { 
+            //res.status = resCli.value().status;
+            res.set_content(resCli.value().body, "application/json");
+        }else{
+            res.status=505; //TODO search errors
+        }
+    });
+    svr.Post("/executeAction", [scheme_host_port](const Request &req, Response &res) { 
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        HttpClient cli( scheme_host_port ); 
+        const string params = req.body;
+        if (HttpClient::Result resCli = cli.Post("/executeAction", params)) { 
+            //DEBUG cout << "PROXY Execute sent " << params << "\n";
+            //DEBUG cout << "PROXY Execute received " << res.body << "\n";
+
+            executeCommandList( resCli.value().body );
+            res.set_content(RETURN_EXECUTE_OK, "application/json");
+        }
+    });
+  
+    svr.Get("/reload", [scheme_host_port](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        cout << "PROXY/reload Received" << "\n";
+        HttpClient cli( scheme_host_port ); 
+        if (HttpClient::Result resCli = cli.Get("/reload")) { 
             res.status = resCli.value().status;
             res.body = resCli.value().body;
         }
         // res.set_content("Hello World!", "text/plain");
     });
-    svr.Get("/reload", [scheme_host_port](const Request &, Response &res) {
-        cout << "PROXY/reload Received" << "\n";
+
+    svr.Get("/getLog", [scheme_host_port](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        cout << "PROXY/getLog Received" << "\n";
         HttpClient cli( scheme_host_port ); 
-        if (HttpClient::Result resCli = cli.Get("/reload")) { 
+        if (HttpClient::Result resCli = cli.Get("/getLog")) { 
             res.status = resCli.value().status;
             res.body = resCli.value().body;
         }
@@ -127,81 +175,6 @@ std::cout << "runServer " << runServer << ".\n";
 std::cout << "proxyPort...\n";
     svr.listen("0.0.0.0", proxyPort);
 std::cout << "proxyPort!\n";
-    // int retries = SERVER_REINTENTS;
-    // while (runServer && (retries-- >0)){
-    //     bool reload = false;
-    //     try{
-    //         boost::asio::io_context io_context;
-    //         tcp::acceptor acceptor(io_context, {tcp::v4(), serverPort});
-
-    //         tcp::socket socket(io_context);
-
-    //         try{
-    //             acceptor.accept(socket);
-
-    //             retries = SERVER_REINTENTS;
-    //         }catch(const std::exception& ex){
-    //             LOG("Exception "<<ex.what());
-    //             LOG( "Exception accepting requests!!!" );
-    //         }
-
-    //         // Read the HTTP request
-    //         boost::beast::flat_buffer buffer;
-    //         http::request<http::string_body> request;
-                
-    //         bool readed = false;
-    //         try{
-    //             boost::beast::http::read(socket, buffer, request);
-    //             readed = true;
-    //         }catch(const std::exception& ex){
-    //             LOG("Exception "<<ex.what());
-    //             LOG( "Exception reading request!!!" );
-    //         }
-
-    //         // Handle the request
-    //         try{
-    //             if (readed){
-    //                reload = core->handleRequest(request, socket);
-    //             }
-    //         }catch(const std::exception& ex){
-    //             LOG("Exception "<<ex.what());
-    //             LOG("Exception  Handling the request!");
-    //         }
-
-    //         // Close the socket
-    //         try{
-    //             socket.shutdown(tcp::socket::shutdown_send);
-    //         }catch(const std::exception& ex){
-    //             LOG("Exception "<<ex.what());
-    //             LOG(  "Exception shutdown socket!!!" );
-    //         }
-    //     }catch(const std::exception& ex){
-    //         LOG("Exception "<<ex.what());
-    //         LOG("Exception starting server! reloading...");
-    //         std::this_thread::sleep_for(1000ms);
-    //     }
-    //     if (reload){
-    //         if (core->newFileName != "")
-    //             script = core->newFileName;
-    //         LOG(  "Main reloading for " << script);
-    //         LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
-    //         core->doQuit();
-    //         LOG(  "Clean result objects: " + to_string( core->getObjectNum() ) );
-
-    //         delete(core);
-    //         delete(lex);
-
-    //         lex = new Lexical();
-    //         core = new Core(lex, &config);
-    //         // core->setConfig(&config);
-    //         LOG( "Core inited!" );
-    //         core->load( script );
-    //     }
-    //     if (!core->portForwardingRequested.empty()){
-    //         core->startAllPortforwards();
-    //     }
-    //     runServer = !core->quit;
-    // }
     
     LOG( "ProxyNebel.doQuit!" );
 
@@ -214,3 +187,45 @@ std::cout << "proxyPort!\n";
     return 0;
 }
 
+string executeCommandList( string commandList){
+    cout << "executeCommandList\n";
+    //DEBUG cout << commandList << "\n";
+    string response="";
+    Json::Value root;
+    Json::Reader reader; //std::stringstream sstr(json);
+    bool isOk = reader.parse( commandList, root ); // sstr >> api;
+    if (isOk){
+        Json::Value cmdList = root["commandList"];
+        cout << "executeCommandList JSON Ok " << cmdList.size() << " commands\n";
+        for ( unsigned int index = 0; index < cmdList.size(); ++index ){
+            cout << "executeCommandList Item " << index << "\n";
+            const Json::Value cmdValue = cmdList[index]["command"];
+            string cmdValueStr = cmdValue.asString();
+
+            cout << "executeCommandList CMD " << cmdValueStr << "\n";
+
+            if (cmdValueStr == "ERROR") break;
+
+            const Json::Value msgValue = cmdList[index]["msg"];
+            string msgValueStr = msgValue.asString();
+
+            const Json::Value fileValue = cmdList[index]["fileName"];
+            if (fileValue){
+                string fileValueStr = msgValue.asString();
+
+                const Json::Value contValue = cmdList[index]["fileContent"];
+                string contValueStr = msgValue.asString();
+
+                Util::writeFile( fileValueStr, contValueStr);
+            }
+            
+            Component::systemCommand( cmdValueStr , "system.out", "system-error.out");
+            response+=msgValueStr+"\n";
+        }
+    }else{
+        response+="ERROR processing request!\n";
+        cout << "executeCommandList: ERROR in JSON\n";
+        cout << reader.getFormattedErrorMessages() << "\n";
+    }
+    return response;
+}
