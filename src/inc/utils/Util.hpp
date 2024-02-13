@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -45,6 +46,9 @@ class Util{
     static time_t now();
     static string loadFile(string file);
     static void writeFile(string file, string content);
+    static string loadFileRaw(string file);
+    // static std::vector<unsigned char> loadFileImage(string file);
+    static string loadFileImage(string file);
     static void emptyFile(string file);
     //static const string getHttp(string theHost, string thePort, string theTarget);
     static bool endsWith(string data, string sufix);

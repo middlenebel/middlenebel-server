@@ -1,21 +1,18 @@
-//Control start
-Debug on
-Platform: Kafka2MySQL
-    DockerDesktop.
+// Workshop for Kafka programming
+Platform: Middlenebel
     K8S:
         CreateNamespaces: kafka2mysql.
     .
-    K8S-Kafka: kafka1
-        namespace kafka2mysql
-        PortForward: kafka-broker 9092 kafka2mysql.
-        KProducer
-        KConsumer
-    .
+    namespace kafka2mysql
     K8S-MySQL: MyDB1
-        namespace kafka2mysql
         pass admin
         port 3306
         PortForward: mysql-nebel 3306 kafka2mysql.
         Initialize: MY_DB1 'sql/my_db1.sql'.
+    .
+    K8S-Kafka: kafka1
+        PortForward: kafka-broker 9092 kafka2mysql.
+        KProducer
+        KConsumer
     .
 .

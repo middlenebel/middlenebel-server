@@ -21,7 +21,8 @@
 #define SERVER_REINTENTS 3
 
 using namespace std;
-string executeCommandList( string commandList);
+string executeCommandList( string commandList, string scheme);
+void processRequest(string url, Response& res);
 
 int main(){
     bool runServer = true;
@@ -102,7 +103,7 @@ std::cout << "nebelPort...\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/play")) { 
             res.status = resCli.value().status;
-            res.body = executeCommandList( resCli.value().body );
+            res.body = executeCommandList( resCli.value().body, scheme_host_port );
         }
         // res.set_content("Hello World!", "text/plain");
     });
@@ -127,7 +128,7 @@ std::cout << "nebelPort...\n";
             //DEBUG cout << "PROXY Execute sent " << params << "\n";
             //DEBUG cout << "PROXY Execute received " << res.body << "\n";
 
-            executeCommandList( resCli.value().body );
+            executeCommandList( resCli.value().body , scheme_host_port );
             res.set_content(RETURN_EXECUTE_OK, "application/json");
         }
     });
@@ -155,6 +156,19 @@ std::cout << "nebelPort...\n";
         }
         // res.set_content("Hello World!", "text/plain");
     });
+
+    if (config.cfg(ATT_FRONT) == CFG_INTERNAL){
+        svr.Get("/assets/:url", [&](const Request& req, Response& res) { 
+            auto url = req.path_params.at("url");
+            processRequest( "/assets/"+url, res);
+        });
+        svr.Get("/:url", [&](const Request& req, Response& res) { 
+            //svr.Get(R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)", [&](const Request& req, Response& res) { 
+            auto url = req.path_params.at("url");
+            processRequest( url, res);
+        });
+    }
+
 std::cout << "GETs.\n"; 
     string strProxyPort = config.cfg( ATT_PROXYPORT, CFG_PROXYPORT);
 
@@ -187,7 +201,44 @@ std::cout << "proxyPort!\n";
     return 0;
 }
 
-string executeCommandList( string commandList){
+void processRequest(string url, Response& res){
+    if (url == "") url = "index.html";
+        cout << "DEBUG: URL " << url << "\n";
+        string content = "";
+        if (Util::endsWith( url, ".png")){
+            // std::vector<unsigned char> binaryData = Util::loadFileImage("./dist/" + url);
+            // content = reinterpret_cast<char*> (&binaryData[0]);
+            content = Util::loadFileImage("./dist/" + url);  
+        }else
+            content = Util::loadFileRaw( "./dist/" + url );
+
+        //cout << "DEBUG: Content " << content << "\n";
+        string contentType = "text/plain";
+        if (Util::endsWith( url, ".html")) contentType="text/html";
+        else if (Util::endsWith( url, ".css")) contentType="text/css";
+        else if (Util::endsWith( url, ".ico")) contentType="image/x-icon";
+        else if (Util::endsWith( url, ".js")) contentType="application/javascript";
+        else if (Util::endsWith( url, ".png")) contentType="image/png";
+        else if (Util::endsWith( url, ".svg")) contentType="image/svg+xml";
+
+        //string strContent = reinterpret_cast<char*> (&binaryData[0]);
+
+        res.set_content( content, contentType);
+}
+
+// server.Get("/test", [](const http::Request&, http::Response& res){
+//     std::ifstream in(filename, std::ios::in | std::ios::binary);
+//     if(in){
+//         std::ostringstream contents;
+//         contents << in.rdbuf();
+//         in.close();
+//         res.set_content(contents.str(), "image/png");
+//     }else{
+//         res.status = 404;
+//     }
+// });
+
+string executeCommandList( string commandList, string scheme_host_port){
     cout << "executeCommandList\n";
     //DEBUG cout << commandList << "\n";
     string response="";
@@ -216,7 +267,16 @@ string executeCommandList( string commandList){
                 const Json::Value contValue = cmdList[index]["fileContent"];
                 string contValueStr = msgValue.asString();
 
-                Util::writeFile( fileValueStr, contValueStr);
+                // if ( contValueStr != ""){
+                //     Util::writeFile( fileValueStr, contValueStr);
+                // }
+                HttpClient cli( scheme_host_port ); 
+                if (HttpClient::Result resCli = cli.Get("/"+fileValueStr)) { 
+                    // res.status = resCli.value().status;
+                    // res.body = resCli.value().body;
+                    Util::writeFile( fileValueStr, resCli.value().body);
+                    cout << "DEBUG Writted " << fileValueStr << "\n";
+                };
             }
             
             Component::systemCommand( cmdValueStr , "system.out", "system-error.out");

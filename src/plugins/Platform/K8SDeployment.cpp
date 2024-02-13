@@ -31,7 +31,7 @@ string K8SDeployment::getJsonComponent(){
 }
 
 string K8SDeployment::apply(){
-     string result = "OK";
+     string result = "";
      try{
           string yaml = getYaml();
           //DEBUG LOG( "YAML:\n" + yaml + "\n";
@@ -39,12 +39,18 @@ string K8SDeployment::apply(){
           string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = "kubectl apply -f "+fileName+" -n "+nameSpace; //+" &";
           
-          ofstream yamlFile(fileName);
-          yamlFile << yaml;
-          yamlFile.close();
-          // int ret = system(command.c_str());
-          string resultCommand = systemCommand( command );
-          LOG( "Apply deployment "+attributes[ATT_NAME] + ": " + resultCommand );
+          // ofstream yamlFile(fileName);
+          // yamlFile << yaml;
+          // yamlFile.close();
+          // // int ret = system(command.c_str());
+          // string resultCommand = systemCommand( command );
+          Util::writeFile( fileName, yaml );
+
+          result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service "+attributes[ATT_APP],
+          //   fileName, yaml );
+               fileName, "");
+               
+          LOG( "Apply deployment "+attributes[ATT_NAME] );
      }catch(...){
           result = "ERROR K8SDeployment.apply";
      }
@@ -56,10 +62,8 @@ string K8SDeployment::destroy(){//TODO rename
           string name=attributes[ATT_NAME];
           string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = "kubectl delete deployment "+name+" -n "+nameSpace; //+" &";
-          //DEBUG LOG( "command: " + command ); 
-          // int ret = system(command.c_str());
-          string resultCommand = systemCommand( command );
-          LOG( "Destroy deployment "+attributes[ATT_NAME] + ": " + resultCommand );
+          result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service "+attributes[ATT_APP] );
+          LOG( "Undeploy "+attributes[ATT_NAME] );
      }catch(...){
           result = "ERROR K8SDeployment.destroy";
      }

@@ -37,12 +37,15 @@ string K8SService::apply(){
      string nameSpace=getAtt(ATT_NAMESPACE, "default");
      string command = (string)"kubectl apply -f "+fileName+" -n "+nameSpace; //+" &";
      try{
-          ofstream yamlFile(fileName);
-          yamlFile << yaml;
-          yamlFile.close();
-          // int ret = system(command.c_str());
-          string resultCommand = systemCommand( command );
-          LOG( "Apply service "+attributes[ATT_NAME] + ": " + resultCommand );
+          // ofstream yamlFile(fileName);
+          // yamlFile << yaml;
+          // yamlFile.close();
+          // // int ret = system(command.c_str());
+          // string resultCommand = systemCommand( command );
+          Util::writeFile( fileName, yaml );
+          result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service "+attributes[ATT_APP],
+            fileName, "" ); //yaml );
+          LOG( "Apply service "+attributes[ATT_NAME] );
      }catch(...){
           result = "ERROR K8SService.apply";
      }
@@ -56,10 +59,9 @@ string K8SService::destroy(){ //TODO rename
           string name=attributes[ATT_NAME];
           string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = (string)"kubectl delete service "+name+" -n "+nameSpace; //+" &";
-          //DEBUG LOG( "command: " + command ); 
-          // int ret = system(command.c_str());
-          string resultCommand = systemCommand( command );
-          LOG( "Destroy service "+attributes[ATT_NAME] + ": " + resultCommand );
+          result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service "+attributes[ATT_APP] );
+
+          LOG( "Destroy service "+attributes[ATT_NAME] );
      }catch(...){
           result = "ERROR K8SService.destroy";
      }

@@ -31,7 +31,8 @@
 
 // #define CPPHTTPLIB_OPENSSL_SUPPORT //libssl and libcrypto should be linked.
 #include <std_function.h>
-#include <httplib.h>
+// #include <httplib.h>
+#include "../../../third_party/cpp-httplib/httplib.h"
 
 typedef httplib::Request Request;
 typedef httplib::Response Response;
@@ -51,6 +52,7 @@ class HttpServer{
       svr.Get( pattern, handler);
       return *this;
     }
+    
     HttpServer& Post(const std::string &pattern, Handler handler) {
       svr.Post( pattern, handler);
       return *this;

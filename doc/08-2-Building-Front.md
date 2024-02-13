@@ -79,7 +79,7 @@ npm install npm@latest
 npm install lite-server --save-dev
 
 ### Build Front
-ng build --configuration production
+cd dist
 
 ### Start build
 cd dist

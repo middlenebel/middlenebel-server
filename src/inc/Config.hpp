@@ -54,6 +54,7 @@
 #define CFG_DEFAULT                 "Default"
 #define CFG_ON                      "on"
 #define CFG_OFF                     "off"
+#define CFG_INTERNAL                "internal"
 #define CFG_LITE                    "lite"
 #define CFG_DOCKER                  "docker"
 #define CFG_FRONTNAME               "my-angular-app"

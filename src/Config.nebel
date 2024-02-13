@@ -9,7 +9,7 @@ Config: Default
     webPort 3000
     proxyPort 8081
     nebelPort 8080
-    front off //lite //docker
+    front internal //off //lite //docker
     frontName 'my-angular-app'
 .
 Config: DEVELOP

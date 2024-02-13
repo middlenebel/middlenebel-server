@@ -30,8 +30,11 @@
 #define HTTPCLIENT_H
 
 // #define CPPHTTPLIB_OPENSSL_SUPPORT //libssl and libcrypto should be linked.
-#include <httplib.h>
+// #include <httplib.h>
+#include "../../../third_party/cpp-httplib/httplib.h"
 #include <iostream>
+
+// cli.Post("/ptz.cmd", "pan_left=50", "application/x-www-form-urlencoded");
 
 class HttpClient : public httplib::Client{
     std::string port;
@@ -61,6 +64,7 @@ class HttpClient : public httplib::Client{
       HttpClient::Result error; //TODO define error
       return ( error );
     }
+    
     //inline 
     Result Post(const std::string &path, const std::string params) { 
       std::cout << "HttpClient - Post " << path << "\n";

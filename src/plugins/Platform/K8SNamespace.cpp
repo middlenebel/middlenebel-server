@@ -44,10 +44,9 @@ string K8SNamespace::destroy(){//TODO rename
           if (name=="")
                return "No namespace found to remove";
           string command = "kubectl delete namespace "+name; //+" &";
-          //DEBUG LOG( "command: " + command ); 
-          // int ret = system(command.c_str());
-          string resultCommand = systemCommand( command );
-          LOG( "Destroy namespace "+attributes[ATT_NAME] + ": " + resultCommand );
+          result = systemCommandList(command, attributes[ATT_APP],getAtt(ATT_NAMESPACE),"?","Remove namespace "+attributes[ATT_NAME]);
+
+          LOG( "Destroy namespace "+attributes[ATT_NAME]);
      }catch(...){
           result = "ERROR K8SNamespace.destroy";
      }

@@ -31,7 +31,7 @@ string K8SLabel::getYamlLabels(){
 // "  type: "+attributes["type"]+"\n"+
 // "  ports:\n"+
 // "    - name: "+name+"-port\n"+
-// "      port: "+attributes[ATT_PORTRTRT]+"\n"+
+// "      port: "+attributes[ATT_PORT]+"\n"+
 // "      nodePort: "+attributes["nodePort"]+"\n"+
 // "      targetPort: "+attributes["targetPort"]+"\n"+
 // "  selector:\n"+

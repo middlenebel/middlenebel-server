@@ -378,8 +378,8 @@ string Component::systemCommandList( string command , string appName, string nam
         "\"port\":\""+port+"\","+
         "\"msg\":\""+msg+"\"";
         if (!fileName.empty()){
-            json+=",\"fileName\":"+fileName+"\"";
-            json+=",\"fileContent\":"+fileContent+"\"";
+            json+=",\"fileName\":\""+fileName+"\"";
+            json+=",\"fileContent\":\""+fileContent+"\"";
         }
     json+="}";
     Core* core = getCore();

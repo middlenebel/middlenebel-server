@@ -82,7 +82,14 @@ int main(){
     .Post("/browserReload", [](const Request &req, Response &res) {     Core::getInstance()->postBrowserReload(req, res); })
     .Get("/getLog", [](const Request &req, Response &res) {      Core::getInstance()->getLog(req, res); })
     .Get("/clearLog", [](const Request &req, Response &res) {    Core::getInstance()->getClearLog(req, res); })
-    .Post("/executeAction", [](const Request &req, Response &res) { Core::getInstance()->getExecuteAction(req, res); });
+    .Post("/executeAction", [](const Request &req, Response &res) { Core::getInstance()->getExecuteAction(req, res); })
+    .Get("/:url", [&](const Request& req, Response& res) { 
+        auto url = req.path_params.at("url");
+        cout << "DEBUG: URL " << url << "\n";
+        string content = Util::loadFile( url );
+        cout << "DEBUG: Content " << content << "\n";
+        res.set_content(content, "text/plain");
+    });
     
     while (runServer){
         std::promise<int> reloadPromise;

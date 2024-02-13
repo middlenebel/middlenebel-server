@@ -133,7 +133,7 @@ class Component : public enable_shared_from_this<Component>{
         
     public:
         static int componentNum; //Index of components created, used as identifier.
-        int objectsNum; //Dynamics objects created/destroyed, for memory control
+        int objectsNum; //NEBEL_CREATE. Dynamics objects created/destroyed, for memory control. TODO static???
 
         bool portForward;
 

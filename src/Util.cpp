@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <string>
 #include <ctime>
+#include <vector>
 
 #include "inc/utils/Util.hpp"
 #include "inc/Core.hpp"
@@ -60,3 +61,47 @@ string Util::loadFile(string file){
     //DEBUG cout << "File: " << script << "\n";
     return script;
 }
+string Util::loadFileRaw(string file){
+    ifstream scriptFile;
+    string script;
+    scriptFile.open( file );
+
+    if (scriptFile.is_open()){
+        string line;
+        while ( getline (scriptFile,line) ){
+            script += line;
+        }
+        scriptFile.close();
+    }
+    return script;
+}
+// std::vector<unsigned char> Util::loadFileImage(string file){
+//     std::ifstream input( file, std::ios::binary );
+//     // copies all data into buffer
+//     std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+//     input.close();
+//     return buffer;
+// }
+string Util::loadFileImage(string file){
+    std::ifstream in(file, std::ios::in | std::ios::binary);
+    // if(in){
+        std::ostringstream contents;
+        contents << in.rdbuf();
+        in.close();
+        // res.set_content(contents.str(), "image/png");
+    return contents.str();
+}
+
+// include <fstream>
+// #include <iterator>
+// #include <algorithm>
+// int main()
+// {
+//     std::ifstream input( "C:\\Final.gif", std::ios::binary );
+//     std::ofstream output( "C:\\myfile.gif", std::ios::binary );
+
+//     std::copy( 
+//         std::istreambuf_iterator<char>(input), 
+//         std::istreambuf_iterator<char>( ),
+//         std::ostreambuf_iterator<char>(output));
+// }

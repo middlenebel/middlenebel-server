@@ -103,13 +103,13 @@ string MySQL::doPlay(){
         LOG("K8S-MySQL Deploying app...");
         fileName="./cfgPlugins/deploy-mysql-nebel.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy My-SQL");
+        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy My-SQL")+"\n";
             //,fileName, Util::loadFile(fileName) );
 
         LOG("K8S-MySQL Deploying services...");
         fileName="./cfgPlugins/service-mysql-nebel.tmp.yaml";
         command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += "," + systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service My-SQL");
+        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service My-SQL")+"\n";
             //,fileName, Util::loadFile(fileName) );
     }catch(...){
           result = "ERROR (MySQL.doPlay)";
@@ -125,10 +125,10 @@ string MySQL::doDestroy(){
         string command, resultCommand;
 
         command = "kubectl delete deployment mysql-nebel -n "+nameSpace;
-        resultCommand += systemCommand( command );
+        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deploy My-SQL")+"\n";
 
         command = "kubectl delete service mysql-nebel -n "+nameSpace;
-        resultCommand += systemCommand( command );
+        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service My-SQL")+"\n";
 
         LOG( "Destroyed K8S-MySQL "+attributes[ATT_NAME]); // Can have " in the messages  + ": " + resultCommand);
      }catch(...){
