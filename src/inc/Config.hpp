@@ -35,7 +35,8 @@
 
 #define VERSION "Middlenebel v0.1.3-alpha Nebel-Docker"
 // -------------------------------------------------------
-#define CONFIG_FILE "./Config.nebel"
+#define CONFIG_FILE_PROXY "./ConfigProxy.nebel"
+#define CONFIG_FILE_NEBEL "./ConfigNebel.nebel"
 
 // FRONT---web--------> WEBPORT [WebAngular ]---( liteServer / docker )
 // FRONT---comands----> PROXYPORT [Proxy ] ----> NEBELPORT [NEBELDOCKER]

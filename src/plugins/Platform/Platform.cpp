@@ -41,7 +41,7 @@ void Platform::parse(){
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
         else if (isToken( TK_DockerDesktop )){ parseDockerDesktop(); }
-        else if (isToken( TK_K8S)){ parseK8S(); }
+        else if (isToken( TK_K8S)){ loadPlugin(token); } //parseK8S(); }
         else if (isToken( TK_Server )){ parseServer(); }
         else if (isToken( TK_DBase )){ parseDBase(); }
         else if (isToken( TK_Kafka )){ loadPlugin(token); }
@@ -70,13 +70,13 @@ void Platform::parseDockerDesktop(){
     dk->parse();
 }
 
-void Platform::parseK8S(){
-    LOG( "K8S");
-    // K8S* k8s = new K8S(this);
-    K8S* k8s;
-    CREATE_NEBEL( "platform/k8s", k8s , K8S(this) );
-    k8s->parse();
-}
+// void Platform::parseK8S(){
+//     LOG( "K8S");
+//     // K8S* k8s = new K8S(this);
+//     K8S* k8s;
+//     CREATE_NEBEL( "platform/k8s", k8s , K8S(this) );
+//     k8s->parse();
+// }
 
 void Platform::parseServer(){
     //DEBUG LOG( "Server" );

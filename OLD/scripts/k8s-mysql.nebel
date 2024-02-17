@@ -1,0 +1,15 @@
+//Control start
+Debug on
+Platform: NebelMySQL
+    K8S:
+        CreateNamespaces: mysql-nebel.
+    .
+    K8S-MySQL: MyDB1
+        namespace mysql-nebel
+        pass admin
+        port 3306
+        PortForward: mysql-nebel 3306 mysql-nebel.
+        schema NEBEL_DB
+        Initialize: MY_DB1 'sql/my_db1.sql'.
+    .
+.

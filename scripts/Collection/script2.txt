@@ -1,0 +1,38 @@
+//Control start
+Debug on
+Platform: Taller2
+    DockerDesktop.
+    K8S:
+        Deployment: websensi2
+            image 'nginx:1.14.2'
+            containerPort 80
+            replicas 2
+        .
+        CreateNamespaces: kafka2.
+        Service: zookeeper
+            namespace kafka
+            type NodePort
+            port 2181
+            nodePort 30181
+            targetPort 2181
+        .
+        Deployment: zookeeper
+            namespace kafka
+            image 'wurstmeister/zookeeper'
+            imagePullPolicy IfNotPresent //TODO
+            replicas 1
+            containerPort 2181
+        .
+        Service: kafkabroker
+            namespace kafka
+            port 9092
+        .
+        Deployment: kafkabroker
+            namespace kafka
+            image 'wurstmeister/kafka'
+            imagePullPolicy IfNotPresent //TODO
+            replicas 1
+            containerPort 9092
+        .
+    .
+.

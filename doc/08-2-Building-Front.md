@@ -53,6 +53,7 @@ docker build -t nebel-web-server .
 
 docker run -p 8081:80 nebel-web-server & 
 
+
 See: https://blog.back4app.com/how-to-deploy-an-angular-application/#Step_3_Dockerize_the_Application
 Run `npm audit` for details.
 npm notice 
@@ -106,6 +107,8 @@ OR????
 https://www.infragistics.com/products/ignite-ui-angular/angular/components/circular-progress
 ng add igniteui-angular
 
+
+sudo dockerd
 
 Build front:
 ng build --configuration production

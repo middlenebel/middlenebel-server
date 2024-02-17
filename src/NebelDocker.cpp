@@ -48,7 +48,7 @@ int main(){
     //TODO 
     Core* core = Core::getInstance();
     Config config( core );
-    config.loadConfig( CONFIG_FILE );
+    config.loadConfig( CONFIG_FILE_NEBEL );
 
     core->setConfig(&config);
   

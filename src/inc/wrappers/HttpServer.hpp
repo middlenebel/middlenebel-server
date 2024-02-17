@@ -31,8 +31,8 @@
 
 // #define CPPHTTPLIB_OPENSSL_SUPPORT //libssl and libcrypto should be linked.
 #include <std_function.h>
-// #include <httplib.h>
-#include "../../../third_party/cpp-httplib/httplib.h"
+#include <httplib.h>
+// #include "../../../third_party/cpp-httplib/httplib.h"
 
 typedef httplib::Request Request;
 typedef httplib::Response Response;

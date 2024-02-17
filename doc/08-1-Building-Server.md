@@ -92,6 +92,21 @@ Then run the server:
 
 docker run -p 8081:80 nebel-web-server & 
 
+docker run -p 8080:8080 nebel-docker & 
+
+docker run -dit nebel-docker
+docker ps
+docker attach xxxxxx
+
+docker context use desktop-linux
+
+Answer for ubuntu users Please create docker context
+
+docker context create desktop-linux --description "Docker Desktop" --docker "host=unix:///home/YOUR_USER_NAME/.docker/desktop/docker.sock"
+
+cd  C:\Program Files\Docker\Docker
+DockerCli.exe -SwitchDaemon
+
 # Third_party 
 This application include several third_party modules.
 

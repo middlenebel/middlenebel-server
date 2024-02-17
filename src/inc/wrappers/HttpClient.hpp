@@ -30,8 +30,8 @@
 #define HTTPCLIENT_H
 
 // #define CPPHTTPLIB_OPENSSL_SUPPORT //libssl and libcrypto should be linked.
-// #include <httplib.h>
-#include "../../../third_party/cpp-httplib/httplib.h"
+#include <httplib.h>
+// #include "../../../third_party/cpp-httplib/httplib.h"
 #include <iostream>
 
 // cli.Post("/ptz.cmd", "pan_left=50", "application/x-www-form-urlencoded");

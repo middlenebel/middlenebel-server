@@ -22,6 +22,7 @@ class K8S : public Component {
         std::list<K8SService*> k8s_services;
         
     public:
+        static int k8sNum;
         K8S(Component*);
         string getJsonComponent();
         string getJsonDeploys();

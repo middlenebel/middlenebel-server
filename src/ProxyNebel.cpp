@@ -1,22 +1,15 @@
 
-#include <chrono>
-#include <thread>
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <dlfcn.h> // dlopen, RTLD_LAZY, dlsym
-
 // Wrappers
 #include "inc/wrappers/HttpServer.hpp"
 #include "inc/wrappers/HttpClient.hpp"
 #include <jsoncpp/json/json.h>
 
 // #include "clj/inc/lang.CljString.hpp"
-#include "inc/Lexical.hpp"
+// #include "inc/Lexical.hpp"
 #include "inc/Control.hpp"
 #include "inc/Core.hpp"
 #include "inc/Config.hpp"
+#include "inc/Browser.hpp"
 
 #define SERVER_REINTENTS 3
 
@@ -25,6 +18,7 @@ string executeCommandList( string commandList, string scheme);
 void processRequest(string url, Response& res);
 
 int main(){
+    Browser browser;
     bool runServer = true;
     HttpServer svr;
 
@@ -44,7 +38,7 @@ int main(){
     // Component::systemCommand( "rm *.out" );
 
     Config config( nullptr );
-    config.loadConfig( CONFIG_FILE );
+    config.loadConfig( CONFIG_FILE_PROXY );
 
     //string nebelVersion = config.cfg( VERSION, "Middlenebel v0.1.3-alpha Nebel-Docker" );
     std::cout << "Hello World!\n";
@@ -84,7 +78,6 @@ std::cout << "nebelPort...\n";
           res.status = resCli.value().status;
           res.body = resCli.value().body;
         }
-        //res.set_content("Hello World!kkkk", "text/plain");
     });
 
     svr.Get("/components", [scheme_host_port](const Request &, Response &res){
@@ -105,7 +98,6 @@ std::cout << "nebelPort...\n";
             res.status = resCli.value().status;
             res.body = executeCommandList( resCli.value().body, scheme_host_port );
         }
-        // res.set_content("Hello World!", "text/plain");
     });
     svr.Get("/destroy", [scheme_host_port](const Request &, Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*" );
@@ -142,7 +134,6 @@ std::cout << "nebelPort...\n";
             res.status = resCli.value().status;
             res.body = resCli.value().body;
         }
-        // res.set_content("Hello World!", "text/plain");
     });
 
     svr.Get("/getLog", [scheme_host_port](const Request &, Response &res) {
@@ -168,6 +159,39 @@ std::cout << "nebelPort...\n";
             processRequest( url, res);
         });
     }
+    svr.Get("/browserReload", [&browser](const Request &, Response &res) {
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        string json = "[" + browser.getBrowserReload("") + "]";
+        res.set_content(json, "application/json");
+    });
+    svr.Post("/save-script", [&browser, scheme_host_port](const Request &req, Response &res) { 
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        string script = req.body;       
+        string json = "[" + browser.getBrowserReload("") + "]";
+        res.set_content(json, "application/json");
+        HttpClient cli( scheme_host_port ); 
+        if (HttpClient::Result resCli = cli.Get("/reload")) { 
+            res.status = resCli.value().status;
+            res.body = resCli.value().body;
+        }
+    });
+    svr.Post("/browserAction", [&browser, scheme_host_port](const Request &req, Response &res) { 
+        res.set_header("Access-Control-Allow-Origin", "*" );
+        res.set_header("Access_Control_Allow_Credentials", "true" );        
+        string action = req.body;       
+        string json = browser.doBrowserAction(action);
+        res.set_content(json, "application/json");
+        if (browser.newFileName != ""){
+            HttpClient cli( scheme_host_port ); 
+            if (HttpClient::Result resCli = cli.Get("/reload")) { 
+                res.status = resCli.value().status;
+                res.body = resCli.value().body;
+            }
+        }
+    });
+
 
 std::cout << "GETs.\n"; 
     string strProxyPort = config.cfg( ATT_PROXYPORT, CFG_PROXYPORT);
@@ -225,18 +249,6 @@ void processRequest(string url, Response& res){
 
         res.set_content( content, contentType);
 }
-
-// server.Get("/test", [](const http::Request&, http::Response& res){
-//     std::ifstream in(filename, std::ios::in | std::ios::binary);
-//     if(in){
-//         std::ostringstream contents;
-//         contents << in.rdbuf();
-//         in.close();
-//         res.set_content(contents.str(), "image/png");
-//     }else{
-//         res.status = 404;
-//     }
-// });
 
 string executeCommandList( string commandList, string scheme_host_port){
     cout << "executeCommandList\n";
