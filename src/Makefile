@@ -8,7 +8,10 @@ HTTPCLIENT=inc/wrappers/HttpClient.hpp
 
 CFLAGS=-Wall -g -Wno-comment -Wsign-compare -fPIC -std=c++17 -lstdc++fs ${HTTPFLAGS}
 
-PLUGINS=-shared Util.o Lexical.o Component.o Core.o
+PLUGINSOBG=Util.o Lexical.o Component.o Core.o
+PLUGINSFLG=-shared
+
+PLUGINS=${PLUGINSFLG} ${PLUGINSOBG}
 
 all: nebel proxy
 
@@ -28,12 +31,16 @@ Browser.o: Browser.cpp inc/Browser.hpp ${HTTPSERVER}
 	g++ -c Browser.cpp ${CFLAGS2} ${HTTPFLAGS}
 
 nebel: NebelDocker.cpp Component.o Control.o Lexical.o Config.o Util.o Core.o ${HTTPSERVER}
-	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
+#	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
+#	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto 
+	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread 
 	cp nebel ..
 
 proxy: ProxyNebel.cpp Component.o Control.o Lexical.o Config.o Util.o Core.o Browser.o \
 		${HTTPSERVER} ${HTTPCLIENT}
-	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
+#	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
+#	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto 
+	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread
 	cp proxy ..
 
 all-old: build
@@ -48,9 +55,32 @@ buildApp:
 buildPlugins:
 	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp  $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
 	g++ -o plugins/K8S.so ${CFLAGS} plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
-	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so /usr/lib/x86_64-linux-gnu/librdkafka.so ../third_party/cppkafka/build/src/lib/libcppkafka.so 
+	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so /usr/lib/x86_64-linux-gnu/librdkafka.so /usr/lib/libcppkafka.so 
 	g++ -o plugins/NebelComp.so ${CFLAGS} plugins/NebelComp/NebelComp.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
 	g++ -o plugins/shared.so ${CFLAGS} plugins/shared.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+	cp plugins/*.so ../plugins
+
+buildPlugins2: plugins/Platform.so plugins/K8S.so plugins/K8S-Kafka.so \
+	plugins/NebelComp.so plugins/shared.so plugins/K8S-MySQL.so
+	cp plugins/*.so ../plugins
+
+plugins/Platform.so: plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp $(PLUGINSOBG) 
+	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp  $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
+
+plugins/K8S.so: plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINSOBG) 
+	g++ -o plugins/K8S.so ${CFLAGS} plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
+
+plugins/K8S-Kafka.so: plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINSOBG) 
+	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so /usr/lib/x86_64-linux-gnu/librdkafka.so /usr/lib/libcppkafka.so 
+
+plugins/NebelComp.so: plugins/NebelComp/NebelComp.cpp $(PLUGINSOBG)
+	g++ -o plugins/NebelComp.so ${CFLAGS} plugins/NebelComp/NebelComp.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
+
+plugins/shared.so: plugins/shared.cpp $(PLUGINSOBG)
+	g++ -o plugins/shared.so ${CFLAGS} plugins/shared.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
+
+plugins/K8S-MySQL.so: plugins/MySQL/MySQL.cpp $(PLUGINSOBG)
 	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
 
 run:

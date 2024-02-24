@@ -30,7 +30,7 @@
 #define HTTPSERVER_H
 
 // #define CPPHTTPLIB_OPENSSL_SUPPORT //libssl and libcrypto should be linked.
-#include <std_function.h>
+#include <functional> //#include <std_function.h>
 #include <httplib.h>
 // #include "../../../third_party/cpp-httplib/httplib.h"
 

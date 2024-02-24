@@ -147,24 +147,13 @@ std::cout << "nebelPort...\n";
         }
         // res.set_content("Hello World!", "text/plain");
     });
-
-    if (config.cfg(ATT_FRONT) == CFG_INTERNAL){
-        svr.Get("/assets/:url", [&](const Request& req, Response& res) { 
-            auto url = req.path_params.at("url");
-            processRequest( "/assets/"+url, res);
-        });
-        svr.Get("/:url", [&](const Request& req, Response& res) { 
-            //svr.Get(R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)", [&](const Request& req, Response& res) { 
-            auto url = req.path_params.at("url");
-            processRequest( url, res);
-        });
-    }
     svr.Get("/browserReload", [&browser](const Request &, Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*" );
         res.set_header("Access_Control_Allow_Credentials", "true" );        
         string json = "[" + browser.getBrowserReload("") + "]";
         res.set_content(json, "application/json");
     });
+    // TDO save content locally and send to back
     svr.Post("/save-script", [&browser, scheme_host_port](const Request &req, Response &res) { 
         res.set_header("Access-Control-Allow-Origin", "*" );
         res.set_header("Access_Control_Allow_Credentials", "true" );        
@@ -192,6 +181,17 @@ std::cout << "nebelPort...\n";
         }
     });
 
+    if (config.cfg(ATT_FRONT) == CFG_INTERNAL){
+        svr.Get("/assets/:url", [&](const Request& req, Response& res) { 
+            auto url = req.path_params.at("url");
+            processRequest( "/assets/"+url, res);
+        });
+        svr.Get("/:url", [&](const Request& req, Response& res) { 
+            //svr.Get(R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)", [&](const Request& req, Response& res) { 
+            auto url = req.path_params.at("url");
+            processRequest( url, res);
+        });
+    }
 
 std::cout << "GETs.\n"; 
     string strProxyPort = config.cfg( ATT_PROXYPORT, CFG_PROXYPORT);
@@ -210,11 +210,11 @@ std::cout << "runServer " << runServer << ".\n";
     if (HttpClient::Result resCli = cli.Get("/hi")) { 
         std::cout << "Nebel server conected in port " << scheme_host_port << "\n";
     }
-std::cout << "proxyPort...\n";
+    std::cout << "Starting proxy...\n";
     svr.listen("0.0.0.0", proxyPort);
-std::cout << "proxyPort!\n";
+    std::cout << "proxy end!\n";
     
-    LOG( "ProxyNebel.doQuit!" );
+    LOG( "Quit!" );
 
     LOG(  "Cleaning memory... objects: " + to_string( config.getObjectNum() ) );
     config.doQuit();

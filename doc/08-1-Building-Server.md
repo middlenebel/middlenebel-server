@@ -19,8 +19,9 @@ sudo apt install g++
 sudo apt install make
 sudo apt install cmake
 
-## Install Boost
-sudo apt install libboost-all-dev
+## Install libz y brotli (cpp-httplib, can be disabled)
+sudo apt-get install libz-dev
+sudo apt-get install -y brotli
 
 ## Install LibJson
 sudo apt-get install libjsoncpp-dev
@@ -92,6 +93,10 @@ Then run the server:
 
 docker run -p 8081:80 nebel-web-server & 
 
+sudo docker run -it --entrypoint /bin/bash <container_name>
+docker exec -it d2d4a89aaee9 ip addr
+
+docker build -t nebel-docker .
 docker run -p 8080:8080 nebel-docker & 
 
 docker run -dit nebel-docker
@@ -116,24 +121,14 @@ git submodule update --init --recursive
 
 But this not give warranties because third_parties can be more avanced in changes not supported for this version.
 
-**boost**
-https://stackoverflow.com/questions/3016448/how-can-i-get-cmake-to-find-my-alternative-boost-installation
-I was finally able to get what I wanted with
-
-cmake -DCMAKE_INSTALL_PREFIX=$TARGET \
-    -DBoost_NO_BOOST_CMAKE=TRUE \
-    -DBoost_NO_SYSTEM_PATHS=TRUE \
-    -DBOOST_ROOT:PATHNAME=$TARGET \
-    -DBoost_LIBRARY_DIRS:FILEPATH=${TARGET}/lib
-
-For cppkafka
+**cppkafka**
 
 cmake .. -DBoost_NO_BOOST_CMAKE=TRUE \
     -DBoost_NO_SYSTEM_PATHS=TRUE \
     -DBOOST_ROOT:PATHNAME=$TARGET \
     -DCPPKAFKA_DISABLE_EXAMPLES=ON
 
-cpp-httplib
+**cpp-httplib**
     mkdir -p build
 	cd build
 	cmake -DCMAKE_BUILD_TYPE=Release ..

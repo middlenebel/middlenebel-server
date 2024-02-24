@@ -16,7 +16,7 @@ string Browser::getBrowserReload(string base){
     string separator = "";
     for(const fs::directory_entry& entry : fs::directory_iterator("./scripts" + base)) {
         string name = entry.path().filename().string();
-
+cout << "DEBUG: Browser.Item " << name << "\n";
         json += separator;
         if ( is_regular_file( entry ) ){
             string baseFolder = (base=="") ? "/" : base;
@@ -78,7 +78,7 @@ string Browser::doBrowserAction(string json){
             if (!isFolder){
                 path += ((baseStr!="/")?"/":"") + nameStr;
             }
-            fs::remove_all(path);
+            fs::remove_all(path); // TODO delete all script folder
             result = "OK";
             message = (string)"Folder "+path+" deleted!";
         }else if (actionStr == "addFile"){
