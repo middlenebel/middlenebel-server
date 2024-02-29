@@ -8,13 +8,19 @@
 #include "./inc/utils/Util.hpp"
 #include "./inc/Config.hpp"
 
-Config::Config(Component* parent):Component(parent){
+//Config::Config(Component* parent):Component(parent){
+Config::Config(string file){
+    parent = nullptr;
     config = this;
     this->lex = new Lexical();
     init();
+    loadConfig(file);
     //  parent->addComponent(this); // Special case Config is independent.
 }
+
+// Subconfigs
 Config::Config(Lexical* lex, Component* parent){
+    parent = parent;
     config = this;
     this->lex = lex;
     init();
@@ -116,6 +122,7 @@ int Config::getObjectNum(){
 
 string Config::doQuit(){
     string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
+    LOG("DEBUG Config::doQuit " << configurations.size());
     for (std::map<string,Config*>::iterator cfgItem = configurations.begin(); cfgItem != configurations.end(); ++cfgItem){
         DELETE_NEBEL(" <<< config >>> ", cfgItem->second);
         result += "Deleted config "+cfgItem->first+"\n";

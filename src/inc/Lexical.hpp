@@ -79,7 +79,7 @@ class Lexical{
         bool isEnd;
 
         Lexical();
-        void load(string);
+        bool load(string);
         void save(string file, string script);
         char lexGetChar();
         char lexGetToken();

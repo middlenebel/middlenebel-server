@@ -1,0 +1,13 @@
+
+TODO List:
+- If wrong namespace or not created start portforward break server.
+- NebelComp command: Run
+Hello World! v.a0.1.Tooling MySQL Test Connection
+Exception Can't connect to server on 'localhost' (115)
+- Make check k8s api repeatedly until found.
+- [FRONT] Disble Play for k8s if not present.
+- k8s: Auto-create namespace 'nebel'.
+- Change plugins to use namespace 'nebel' and by default.
+- [FRONT] Load file -> Edit file instead log.
+- Save file not running.
+- [FRNT] Load text files shows script of server

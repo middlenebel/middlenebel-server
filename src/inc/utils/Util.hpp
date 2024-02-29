@@ -79,11 +79,14 @@ class Util{
     Util::middlenebelLogFile.close();\
 })
 
-#define DEBUG( A ) ({ \
-    Util::middlenebelLog.open("middlenebel-debug.log", std::ios_base::app); \
-    Util::middlenebelLog << A << "\n"; \
-    Util::middlenebelLog.close();\
-})
+//#define DEBUG( A ) ( {} )
+#define DEBUG( A ) ( A )
+
+// #define DEBUG( A ) ({ \
+//     Util::middlenebelLog.open("middlenebel-debug.log", std::ios_base::app); \
+//     Util::middlenebelLog << A << "\n"; \
+//     Util::middlenebelLog.close();\
+// })
 
 #define JSON_PROPERTY( PROP, VALUE ) ( (string)"\"" + PROP + "\":\"" + VALUE + "\"" )
 #define JSON_ARRAY( PROP, CONTENT ) ( (string)"\"" + PROP + "\":[" + CONTENT + "]" )

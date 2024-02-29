@@ -84,17 +84,18 @@
 
 class Config : public Component {
     private:
-
         void init();
         std::map<string, Config*> configurations;
         Config* config; // Can be use Config like Core
         Config(Lexical*, Component*);
+        void loadConfig(string file);
+
     public:
         string fileName;
         string newFileName;
 
-        Config(Component*);
-        void loadConfig(string file);
+        Config(string file);
+
         void saveConfig(string file, string script);
 
         void parse();

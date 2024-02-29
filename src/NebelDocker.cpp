@@ -25,17 +25,31 @@
 using namespace std;
 
 HttpServer svr;
+
 // @See: https://www.modernescpp.com/index.php/promise-and-future/
 void server_func(std::promise<int>&& reloadPromise ){
     std::cout << "Starting thread for server...\n"; 
     // HttpServer svr;
     Core* core = Core::getInstance();
+    Config config( CONFIG_FILE_NEBEL );
+
+    core->setConfig(&config);
     core->setReloadPromise( std::move(reloadPromise) );
     std::string strServerPort = core->config->cfg(ATT_NEBELPORT, CFG_NEBELPORT);
     int nebelPort = stoi( strServerPort );
     std::cout << "Starting server at port " << nebelPort << "\n"; 
 
+    core->load( "DEPRECATED" );
+    LOG("Core:Promise Load!");
+
     svr.listen("0.0.0.0", nebelPort);
+
+    LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
+    config.doQuit();
+    core->doQuit();
+    LOG(  "Clean result objects: " + to_string( core->getObjectNum() ) );
+    delete(core);
+
     std::cout << "Stopping server at port " << nebelPort << "\n";
 }
 
@@ -45,19 +59,13 @@ int main(){
     Component::systemCommand( "rm *.log" );
     Component::systemCommand( "rm *.out" );
 
-    //TODO 
-    Core* core = Core::getInstance();
-    Config config( core );
-    config.loadConfig( CONFIG_FILE_NEBEL );
-
-    core->setConfig(&config);
-  
     //string nebelVersion = config.cfg( VERSION, "Middlenebel v0.1.3-alpha Nebel-Docker" );
     std::cout << "Hello World!\n";
     LOG_INIT( "Hello World!\n" );
+    DEBUG( cout << "WARNING DEBUG IS ENABLED!!!" <<"\n" );
 
-    string script = "./scripts/middlenebel.nebel";
-    core->load( script ); //TODO CAll from proxy. If script dont exists ERROR
+    //string script = "./scripts/middlenebel.nebel";
+    //SCRIPTOUT     core->load( script ); //TODO CAll from proxy. If script dont exists ERROR
 
     LOG( "Core ready!" );
     std::cout << "Core ready!\n";
@@ -110,14 +118,6 @@ int main(){
         serverThread.join();
     }
     LOG( "Main.doQuit!" );
-
-    LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
-    core->doQuit();
-    config.doQuit();
-    LOG(  "Clean result objects: " + to_string( core->getObjectNum() ) );
-
-    delete(core);
-    // delete(lex);
     LOG( "Finished Middlenebel back-end!");
     std::cout << "Finished Middlenebel back-end!";
     return 0;

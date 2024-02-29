@@ -4,10 +4,7 @@
 #include "inc/wrappers/HttpClient.hpp"
 #include <jsoncpp/json/json.h>
 
-// #include "clj/inc/lang.CljString.hpp"
-// #include "inc/Lexical.hpp"
 #include "inc/Control.hpp"
-#include "inc/Core.hpp"
 #include "inc/Config.hpp"
 #include "inc/Browser.hpp"
 
@@ -37,12 +34,12 @@ int main(){
     // Component::systemCommand( "rm *.log" );
     // Component::systemCommand( "rm *.out" );
 
-    Config config( nullptr );
-    config.loadConfig( CONFIG_FILE_PROXY );
+    Config config( CONFIG_FILE_PROXY );
 
     //string nebelVersion = config.cfg( VERSION, "Middlenebel v0.1.3-alpha Nebel-Docker" );
     std::cout << "Hello World!\n";
     LOG_INIT( "Hello World!\n" );
+    DEBUG( cout << "WARNING DEBUG IS ENABLED!!!" <<"\n" );
 
     if (config.cfg( ATT_FRONT ) == CFG_LITE ){  //TODO liteServer has config file
         string command = "lite-server -c Config.lite-server.json & ";
@@ -66,90 +63,89 @@ std::cout << "nebelPort...\n";
     string script = "./scripts/middlenebel.nebel";
 
     svr.Get("/hi", [scheme_host_port](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );
         cout << "PROXY/hi Received" << "\n";
         HttpClient cli( scheme_host_port );
         if (HttpClient::Result resCli = cli.Get("/hi")) {
-        //   if (resCli->status == httplib::StatusCode::OK_200) {
-        //     //std::cout << res.value().body << std::endl;
-        //     res.body = resCli.value().body;
-        //   }
           res.status = resCli.value().status;
           res.body = resCli.value().body;
         }
-    });
-
-    svr.Get("/components", [scheme_host_port](const Request &, Response &res){
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );
-        cout << "PROXY/components Received" << "\n";
+    })
+    .Get("/hiProxy", [](const Request &, Response &res) {
+        //DEBUG cout << "PROXY/hiProxy Received" << "\n";
+        res.set_content("Hello World!", "text/plain");
+    })
+    .Get("/components", [scheme_host_port](const Request &, Response &res){
+        //DEBUG cout << "PROXY/components Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/components")) { 
             res.set_content(resCli.value().body, "application/json");
          }
-    });
-    svr.Get("/play", [scheme_host_port](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
-        cout << "PROXY/play Received" << "\n";
+    })
+    .Get("/play", [scheme_host_port](const Request &, Response &res) {
+        //DEBUG cout << "PROXY/play Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/play")) { 
             res.status = resCli.value().status;
             res.body = executeCommandList( resCli.value().body, scheme_host_port );
         }
-    });
-    svr.Get("/destroy", [scheme_host_port](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
-        cout << "PROXY/destroy Received" << "\n";
+    })
+    .Get("/destroy", [scheme_host_port](const Request &, Response &res) {
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );        
+        //DEBUG cout << "PROXY/destroy Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/destroy")) { 
-            //res.status = resCli.value().status;
             res.set_content(resCli.value().body, "application/json");
         }else{
             res.status=505; //TODO search errors
         }
-    });
-    svr.Post("/executeAction", [scheme_host_port](const Request &req, Response &res) { 
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
+    })
+    .Post("/executeAction", [scheme_host_port](const Request &req, Response &res) { 
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );        
         HttpClient cli( scheme_host_port ); 
         const string params = req.body;
         if (HttpClient::Result resCli = cli.Post("/executeAction", params)) { 
             //DEBUG cout << "PROXY Execute sent " << params << "\n";
             //DEBUG cout << "PROXY Execute received " << res.body << "\n";
-
             executeCommandList( resCli.value().body , scheme_host_port );
             res.set_content(RETURN_EXECUTE_OK, "application/json");
         }
-    });
-  
-    svr.Get("/reload", [scheme_host_port](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
+    })
+    .Get("/reload", [scheme_host_port](const Request &, Response &res) {
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );        
         cout << "PROXY/reload Received" << "\n";
         HttpClient cli( scheme_host_port ); 
+
         if (HttpClient::Result resCli = cli.Get("/reload")) { 
             res.status = resCli.value().status;
             res.body = resCli.value().body;
         }
-    });
-
-    svr.Get("/getLog", [scheme_host_port](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
-        cout << "PROXY/getLog Received" << "\n";
+    })
+    .Get("/getLog", [scheme_host_port](const Request &, Response &res) {
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );        
+        //DEBUG cout << "PROXY/getLog Received" << "\n";
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/getLog")) { 
             res.status = resCli.value().status;
             res.body = resCli.value().body;
         }
-        // res.set_content("Hello World!", "text/plain");
-    });
-    svr.Get("/browserReload", [&browser](const Request &, Response &res) {
-        res.set_header("Access-Control-Allow-Origin", "*" );
-        res.set_header("Access_Control_Allow_Credentials", "true" );        
+    })
+    .Get("/clearLog", [scheme_host_port](const Request &, Response &res) {
+        cout << "PROXY/clearLog Received" << "\n";
+        HttpClient cli( scheme_host_port );
+        if (HttpClient::Result resCli = cli.Get("/clearLog")) {
+          res.status = resCli.value().status;
+          res.body = resCli.value().body;
+        }
+    })
+    .Get("/browserReload", [&browser](const Request &, Response &res) {
+        // res.set_header("Access-Control-Allow-Origin", "*" );
+        // res.set_header("Access_Control_Allow_Credentials", "true" );        
         string json = "[" + browser.getBrowserReload("") + "]";
         res.set_content(json, "application/json");
     });
@@ -157,14 +153,17 @@ std::cout << "nebelPort...\n";
     svr.Post("/save-script", [&browser, scheme_host_port](const Request &req, Response &res) { 
         res.set_header("Access-Control-Allow-Origin", "*" );
         res.set_header("Access_Control_Allow_Credentials", "true" );        
-        string script = req.body;       
-        string json = "[" + browser.getBrowserReload("") + "]";
-        res.set_content(json, "application/json");
-        HttpClient cli( scheme_host_port ); 
-        if (HttpClient::Result resCli = cli.Get("/reload")) { 
-            res.status = resCli.value().status;
-            res.body = resCli.value().body;
+
+        Util::writeFile(browser.fileName, req.body);
+
+        DEBUG( cout << "DEBUG save-script " << browser.fileName <<"\n" );
+        if (Util::endsWith(browser.fileName , ".nebel")){
+            DEBUG( cout << "DEBUG save-script saving in sever...\n" );
+            HttpClient cli( scheme_host_port ); 
+            const string params = req.body;
+            cli.Post("/save-script", params);
         }
+        res.set_content(RETURN_EXECUTE_OK, "application/json");
     });
     svr.Post("/browserAction", [&browser, scheme_host_port](const Request &req, Response &res) { 
         res.set_header("Access-Control-Allow-Origin", "*" );
@@ -172,13 +171,12 @@ std::cout << "nebelPort...\n";
         string action = req.body;       
         string json = browser.doBrowserAction(action);
         res.set_content(json, "application/json");
-        if (browser.newFileName != ""){
+        if (browser.newFileName != "" && Util::endsWith(browser.newFileName , ".nebel")){
             HttpClient cli( scheme_host_port ); 
-            if (HttpClient::Result resCli = cli.Get("/reload")) { 
-                res.status = resCli.value().status;
-                res.body = resCli.value().body;
-            }
+            const string params = Util::loadFileImage(browser.newFileName);
+            cli.Post("/save-script", params); 
         }
+        res.set_content(RETURN_EXECUTE_OK, "application/json");
     });
 
     if (config.cfg(ATT_FRONT) == CFG_INTERNAL){

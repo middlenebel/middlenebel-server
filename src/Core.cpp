@@ -40,6 +40,7 @@ void Core::init(){
     synLastChar='\0';
     synLastType=SYN_UNDEF;
     token="";
+    oFileName = "./script.nebel";
     newFileName = "";
     portForwardingRequested = "";
 
@@ -53,10 +54,13 @@ void Core::setReloadPromise( std::promise<int>&& reloadPromise ){
 }
 
 void Core::load(string fileName){
-    this->fileName = fileName;
-    lex->load(fileName);
-
-    if (Util::endsWith(fileName , ".nebel")){
+    //this->oFileName = fileName; //TODO Save it only if parse ok (?)
+    fileName = this->oFileName.value(); //Allways work with the same file
+    cout <<"DEBUG fileName " << fileName <<"\n";
+    bool loaded = lex->load(fileName);
+  
+    if (loaded && Util::endsWith(fileName , ".nebel")){
+        LOG("Core:loaded " << fileName);
         if ( IS_NOT_CONFIG( ATT_DISABLE_PARSE, CFG_TRUE ) ){
             parse();
             LOG("Core: Parsing complete!");
@@ -73,7 +77,10 @@ void Core::load(string fileName){
 }
 
 void Core::save(string fileName, string script){
-    lex->save(fileName, script);
+    //Allways work with the same file
+    //lex->save(fileName, script);
+    lex->save( oFileName.value(), script );
+    LOG("Core:Saved!");
 }
 
 //====================/ HTTP REQUESTS \======================
@@ -128,7 +135,8 @@ bool Core::getReload(const Request &req, Response &res){
 bool Core::postSaveScript(const Request &req, Response &res){ 
     LOG("Save requested!!!");
     string script = req.body;
-    save( fileName, script );
+    save( oFileName.value(), script );
+    cout << "Saved script to " << oFileName.value() <<"\n";
     string json = "{ \"result\" : \"OK\" , \"message\" : \"Save success!\" }";
     res.set_content(json, "application/json"); 
     reloadPromise.set_value(1);
@@ -405,4 +413,9 @@ string Core::doQuit(){
     portForwards.clear();
     result += Component::doQuit(); // To delete childs
     return result;
+}
+
+Core::~Core(){
+    doQuit();
+    Core::coreInstance = nullptr;
 }

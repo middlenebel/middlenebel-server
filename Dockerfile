@@ -46,6 +46,7 @@ COPY --from=builder /app/cfgPlugins/* /usr/local/middlenebel/cfgPlugins/
 COPY --from=builder /app/src/nebel /usr/local/middlenebel/nebel
 COPY --from=builder /app/runnebel.sh /usr/local/middlenebel/runnebel.sh
 COPY --from=builder /app/*.nebel /usr/local/middlenebel/
+# TODO remove scripts
 COPY --from=builder /app/scripts/*.nebel /usr/local/middlenebel/scripts/
 COPY --from=builder /app/scripts/sql/*.sql /usr/local/middlenebel/scripts/sql/
 

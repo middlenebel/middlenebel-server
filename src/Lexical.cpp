@@ -14,10 +14,15 @@ Lexical::Lexical(){
     init();
 }
 
-void Lexical::load(string file){
+bool Lexical::load(string file){
     script = file;
     fin.open( file );
-    LOG( "Loaded " + file );
+    if (!fin.good()){
+        cout << "DEBUG error loading " << file <<"\n";
+        LOG( "Lex: Error loading file " << file);
+        return false;
+    } 
+    return true;
 }
 
 void Lexical::save(string file, string script){
@@ -26,7 +31,7 @@ void Lexical::save(string file, string script){
         output.write(script.data(), script.length());
     }
     output.close();
-    LOG( "Saved "+file );
+    //DEBUG LOG( "Saved "+file );
 }
 
 void Lexical::init(){

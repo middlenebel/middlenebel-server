@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <future>
+#include <optional>
 
 #include "PortForward.hpp"
 #include "Component.hpp"
@@ -61,10 +62,11 @@ class Core : public Component{
         short unsigned int serverPort;
 
         std::promise<int> reloadPromise;
+        
     public:
         Config* config;
         // string logContent;
-        string fileName;
+        std::optional<string> oFileName;
         string newFileName;
         string portForwardingRequested;
         bool quit;
@@ -75,7 +77,9 @@ class Core : public Component{
         static Core* getInstance();
         Core(Core*) = delete;
         void operator=(const Core &) = delete;
-
+        ~Core();
+        virtual string doQuit();
+        
         void setConfig(Config* config);
         
         void setReloadPromise( std::promise<int>&& reloadPromise );
@@ -96,8 +100,6 @@ class Core : public Component{
         void createPortForward(string actionPF, string app, string port, string naMespace);
         string startAllPortforwards();
         string stopAllPortforwards();
-
-        virtual string doQuit();
 
         bool getStatus(const Request &req, Response &res); 
         bool getComponents(const Request &req, Response &res);
