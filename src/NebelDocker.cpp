@@ -87,7 +87,7 @@ int main(){
     .Get("/destroy", [](const Request &req, Response &res) { Core::getInstance()->getDestroy(req, res); })
     .Get("/reload", [](const Request &req, Response &res) {  Core::getInstance()->getReload(req, res); })
     .Post("/save-script", [](const Request &req, Response &res) {       Core::getInstance()->postSaveScript(req, res); })
-    .Post("/browserReload", [](const Request &req, Response &res) {     Core::getInstance()->postBrowserReload(req, res); })
+    //CLEANING .Post("/browserReload", [](const Request &req, Response &res) {     Core::getInstance()->postBrowserReload(req, res); })
     .Get("/getLog", [](const Request &req, Response &res) {      Core::getInstance()->getLog(req, res); })
     .Get("/clearLog", [](const Request &req, Response &res) {    Core::getInstance()->getClearLog(req, res); })
     .Post("/executeAction", [](const Request &req, Response &res) { Core::getInstance()->getExecuteAction(req, res); })

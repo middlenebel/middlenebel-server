@@ -57,7 +57,7 @@ class Core : public Component{
         void send_bad_response(  http::status status, std::string const& error, tcp::socket& socket_);
         */
         string doExecuteAction(string json);
-        void destroyProblems();
+        void destroyProblems(); //TODO (?)
 
         short unsigned int serverPort;
 
@@ -93,7 +93,7 @@ class Core : public Component{
         // void log(string line);
         // TODO friend ostream& operator<<(ostream& os, const string& line);
 
-        string getBrowserReload(string base);
+        //CLEANING string getBrowserReload(string base);
         string doBrowserAction(string action);
         string execute( string json);
 
@@ -108,11 +108,11 @@ class Core : public Component{
         bool getQuit(const Request &req, Response &res);
         bool getReload(const Request &req, Response &res);
         bool postSaveScript(const Request &req, Response &res);
-        bool postBrowserReload(const Request &req, Response &res);
+        //CLEANING bool postBrowserReload(const Request &req, Response &res);
         bool getLog(const Request &req, Response &res);
         bool getClearLog(const Request &req, Response &res);
         bool getExecuteAction(const Request &req, Response &res);
-        bool postBrowserAction(const Request &req, Response &res);
+        //CLEANING bool postBrowserAction(const Request &req, Response &res);
 };
 
 #endif // !defined( CORE_H )
