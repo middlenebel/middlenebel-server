@@ -142,23 +142,7 @@ bool Core::postSaveScript(const Request &req, Response &res){
     reloadPromise.set_value(1);
     return RELOAD_TRUE;
 }
-//CLEANING 
-// bool Core::postBrowserReload(const Request &req, Response &res){ 
-//     string json = "[" + getBrowserReload("") + "]";
-//     res.set_content(json, "application/json");
-//     return RELOAD_FALSE;
-// }
-//CLEANING 
-// bool Core::postBrowserAction(const Request &req, Response &res){ 
-//     string action = req.body;
-//     string json = doBrowserAction(action);
-//     res.set_content(json, "application/json"); 
-//     if (this->newFileName != ""){
-//         reloadPromise.set_value(1);
-//         return RELOAD_TRUE;
-//     }
-//     return RELOAD_FALSE;
-// }
+
 bool Core::getLog(const Request &req, Response &res){ 
     string logContent = Util::loadFile( "middlenebel.log" );
     string json = 
@@ -207,113 +191,6 @@ string Core::getJsonPortForwards(){
     }
     return result;
 }
-//CLEANING 
-// string Core::getBrowserReload(string base){
-//     string json = "";
-//     string separator = "";
-//     for(const fs::directory_entry& entry : fs::directory_iterator("./scripts" + base)) {
-//         string name = entry.path().filename().string();
-
-//         json += separator;
-//         if ( is_regular_file( entry ) ){
-//             string baseFolder = (base=="") ? "/" : base;
-//             json += (string) "{" + 
-//                 "\"name\":\"" + name +"\","+
-//                 "\"base\":\"" + baseFolder +"\""+"}";
-
-//         } else if (is_directory( entry )) {
-
-//             std::string pathName = base + "/" + name; // Path to the directory
-
-//             string folderContent = getBrowserReload( pathName );
-//             if (folderContent=="")
-//                 folderContent="{\"name\":\".\",\"base\":\""+ pathName+ "\"}";
-                
-//             json += (string) "{" + 
-//                 "\"name\":\"" + name +"\","+
-//                 "\"base\":\"" + pathName +"\","+
-//                 "\"children\":["+ folderContent +"]"+
-//             "}";
-//         }
-//         separator = ",";
-//     }
-//     return json;
-// }
-
-// string Core::doBrowserAction(string json){
-//     string result = "KO";
-//     string message = "Server ERROR!";
-
-//     Json::Value value;
-//     Json::Reader reader;
-//     bool isOk = reader.parse( json, value );
-//     if (isOk){
-//         const Json::Value actionValue = value["action"];
-//         string actionStr = actionValue.asString();
-
-//         const Json::Value baseValue = value["base"];
-//         string baseStr = baseValue.asString();
-
-//         const Json::Value newValue = value["newValue"];
-//         string newValueStr = newValue.asString();
-
-//         const Json::Value nameValue = value["value"];
-//         string nameStr = nameValue.asString();
-
-//         const Json::Value isFolderValue = value["isFolder"];
-//         bool isFolder = isFolderValue.asBool();
-
-//         string path = "./scripts"+baseStr;
-//         string pathTo = "./scripts"+baseStr;
-//         if (actionStr == "addFolder"){
-//             path += ((baseStr!="/")?"/":"") + newValueStr;
-//             fs::create_directory(path);
-//             result = "OK";
-//             message = (string)"Folder "+path+" created!";
-//         }else if (actionStr == "delete"){
-//             if (!isFolder){
-//                 path += ((baseStr!="/")?"/":"") + nameStr;
-//             }
-//             fs::remove_all(path);
-//             result = "OK";
-//             message = (string)"Folder "+path+" deleted!";
-//         }else if (actionStr == "addFile"){
-//             if (!isFolder){
-//                 path += ((baseStr!="/")?"/":"") + newValueStr;
-//             }
-//             std::fstream f(path, std::ios::out);
-//             f.close();
-//             result = "OK";
-//             message = (string)"Folder "+path+" deleted!";
-//         }else if (actionStr == "rename"){
-//             //if (!isFolder){
-//                 path += ((baseStr!="/")?"/":"") + nameStr;
-//             //}
-//             pathTo += ((baseStr!="/")?"/":"") + newValueStr;
-//             LOG("Rename from "<<path<<" to "<<pathTo);
-//             try{
-//                 fs::rename(path, pathTo);
-//                 result = "OK";
-//                 message = (string)"Folder "+path+" renamed to "+pathTo;
-//             }catch(const std::exception& ex){
-//                 LOG("Exception "<<ex.what());
-//                 result = "KO";
-//                 message = (string)"Exception "+ex.what();
-//             }
-//         }else if (actionStr == "loadScript"){
-//             if (isFolder){
-//                 message = (string)"A folder can't be loaded as script!";
-//             }else{
-//                 path += ((baseStr!="/")?"/":"") + nameStr;
-//                 this->newFileName = path;
-//             }
-//             result = "OK";
-//             message = (string)"Script "+path+" loaded!";
-//         }
-//     }
-
-//     return (string) "{ \"result\" : \""+ result +"\" , \"message\" : \""+ message +"\" }";
-// }
 
 string Core::doExecuteAction(string json){
     string result = "KO";

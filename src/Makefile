@@ -13,6 +13,8 @@ PLUGINSFLG=-shared
 
 PLUGINS=${PLUGINSFLG} ${PLUGINSOBG}
 
+full: nebel proxy buildPlugins2 copy
+
 all: nebel proxy
 
 Component.o: Component.cpp inc/Component.hpp inc/Core.hpp inc/Control.hpp inc/utils/Util.hpp ${HTTPSERVER}

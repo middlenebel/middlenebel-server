@@ -53,7 +53,9 @@ string Util::loadFile(string file){
     if (scriptFile.is_open()){
         string line;
         while ( getline (scriptFile,line) ){
-            script += line + "\\n";
+            int end = line.size()-1;
+            while ( (end>0) && ((line.at(end)=='\n') || (line.at(end)=='\r')) ) end--;
+            script += line.substr(0,end+1) + "\\n";
         }
         scriptFile.close();
     }

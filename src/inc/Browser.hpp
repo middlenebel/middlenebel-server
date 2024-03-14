@@ -9,7 +9,7 @@ using namespace std;
 class Browser{
     public:
         string fileName;
-        string newFileName;
+        //string newFileName;
 
         Browser();
 

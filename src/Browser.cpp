@@ -8,7 +8,8 @@
 namespace fs = std::filesystem;
 
 Browser::Browser(){
-    newFileName = "";
+    //newFileName = "";
+    fileName = "";
 }
        
 string Browser::getBrowserReload(string base){
@@ -47,6 +48,7 @@ cout << "DEBUG: Browser.Item " << name << "\n";
 string Browser::doBrowserAction(string json){
     string result = "KO";
     string message = "Server ERROR!";
+    string script = "";
 
     Json::Value value;
     Json::Reader reader;
@@ -109,14 +111,16 @@ string Browser::doBrowserAction(string json){
                 message = (string)"A folder can't be loaded as script!";
             }else{
                 path += ((baseStr!="/")?"/":"") + nameStr;
-                this->newFileName = path;
+                //this->newFileName = path;
+                this->fileName = path;
+                script = Util::loadFile(this->fileName);
             }
             result = "OK";
             message = (string)"Script "+path+" loaded!";
         }
     }
 
-    return (string) "{ \"result\" : \""+ result +"\" , \"message\" : \""+ message +"\" }";
+    return (string) "{ \"result\" : \""+ result +"\" , \"message\" : \""+ message +"\" , \"script\" : \""+ script +"\" }";
 }
 
 
