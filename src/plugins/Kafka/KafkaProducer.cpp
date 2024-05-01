@@ -76,7 +76,8 @@ void *producerScheduler (void* caller) {
     //if (pos == std::string::npos) return;
     int num = 0;
 
-    string brokers = "localhost:9092";
+    //string brokers = "localhost:9092";
+    string brokers = "kafka-broker:9092";
     int partition_value = -1;
 
     // Create a message builder for this topic

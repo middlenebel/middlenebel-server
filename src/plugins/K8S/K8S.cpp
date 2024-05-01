@@ -351,7 +351,15 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6Im8wdU5ocUIzN2o4Z01oQ2dRS1lZalEza203N19QbTFfMDNCUGlw
 
 http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
 
-kubectl edit deployment -n kube-system kubernetes-dashboard --token-ttl=43200
+kubectl edit deployment -n kubernetes-dashboard kubernetes-dashboard --token-ttl=43200
+
+kubectl patch --namespace kubernetes-dashboard deployment \
+  kubernetes-dashboard --type='json' --patch \
+ '[{"op": "add", "path": "/spec/template/spec/containers/0/args/2", "value": "--token-ttl=43200" }]'
+
+kubectl patch --namespace kubernetes-dashboard deployment \
+  kubernetes-dashboard --type='json' --patch \
+ '[{"op": "add", "path": "/spec/template/spec/containers/0/args/2", "value": "--token-ttl=0" }]'
 
 --- KAFKA-CAT
 kubectl get pods -n kafka

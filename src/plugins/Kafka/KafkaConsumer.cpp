@@ -29,7 +29,8 @@ void *consumerScheduler (void* caller) {
     LOG("KafkaConsumer scheduler");
 
     // Construct the configuration
-    string brokers = "localhost:9092";
+    //string brokers = "localhost:9092";
+    string brokers = "kafka-broker:9092";
     Configuration config = {
         { "metadata.broker.list", brokers },
         { "group.id", "1" },
