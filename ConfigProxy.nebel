@@ -1,17 +1,17 @@
 
 useConfig Default
 
-// FRONT---web--------> WEBPORT [WebAngular ]---( liteServer / docker )
-//                \   (if internal)
+// External FRONT---web------> WEBPORT [WebAngular ]---( liteServer / docker )
+//                \   
 //                 \
-// FRONT---comands----> PROXYPORT [Proxy ] ----> NEBELPORT [NEBELDOCKER]
+// Internal FRONT---comands--> PROXYPORT [Proxy ] ---> NEBELPORT [NEBELDOCKER]
 
 Config: Default
     version 'Middlenebel Proxy-Nebel v0.1.3-alpha'
     webPort 3000
     proxyPort 8081
     nebelPort 8080
-    front internal //off //lite //docker
+    front internal // internal, off, lite, docker
     frontName 'my-angular-app'
 .
 Config: DEVELOP
