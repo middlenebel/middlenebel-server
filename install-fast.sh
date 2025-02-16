@@ -10,7 +10,7 @@ echo "You can abort the script and do it manually, see: doc/08-Building.md for i
 echo
 echo "The next dependencies will be installed in your system:"
 echo
-echo " g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libssl, cppkafka"
+echo "g++, Make, CMake, libboost, libjsoncpp, librdkafka, libmysqlcppconn, libssl, cppkafka"
 echo
 echo "You will need administrative rights to install in your system!"
 echo

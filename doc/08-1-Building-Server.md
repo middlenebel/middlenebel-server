@@ -19,8 +19,9 @@ sudo apt install g++
 sudo apt install make
 sudo apt install cmake
 
-## Install Boost
-sudo apt install libboost-all-dev
+## Install libz y brotli (cpp-httplib, can be disabled)
+sudo apt-get install libz-dev
+sudo apt-get install -y brotli
 
 ## Install LibJson
 sudo apt-get install libjsoncpp-dev
@@ -68,7 +69,7 @@ Installation finished!
 You can start the server with ./main
 
 ## Running Front
-The middlenebel-server includes a static version of the angular fornt application.
+The middlenebel-server includes a static version of the angular front application.
 
 Yo can download and run the front separatelly, see **08-2-Building-Front.md** for instructions.
 
@@ -91,3 +92,55 @@ docker build -t nebel-web-server .
 Then run the server:
 
 docker run -p 8081:80 nebel-web-server & 
+
+sudo docker run -it --entrypoint /bin/bash <container_name>
+docker exec -it d2d4a89aaee9 ip addr
+
+docker build -t nebel-docker .
+docker run -p 8080:8080 nebel-docker & 
+
+docker run -dit nebel-docker
+docker ps
+docker attach xxxxxx
+
+docker context use desktop-linux
+
+Answer for ubuntu users Please create docker context
+
+docker context create desktop-linux --description "Docker Desktop" --docker "host=unix:///home/YOUR_USER_NAME/.docker/desktop/docker.sock"
+
+cd  C:\Program Files\Docker\Docker
+DockerCli.exe -SwitchDaemon
+
+# Third_party 
+This application include several third_party modules.
+
+To update the third_party modules you can use:
+
+git submodule update --init --recursive
+
+But this not give warranties because third_parties can be more avanced in changes not supported for this version.
+
+**cppkafka**
+
+cmake .. -DBoost_NO_BOOST_CMAKE=TRUE \
+    -DBoost_NO_SYSTEM_PATHS=TRUE \
+    -DBOOST_ROOT:PATHNAME=$TARGET \
+    -DCPPKAFKA_DISABLE_EXAMPLES=ON
+
+**cpp-httplib**
+    mkdir -p build
+	cd build
+	cmake -DCMAKE_BUILD_TYPE=Release ..
+	sudo cmake --build . --target install
+
+    punksystec@LAPTOP-CPH12905:~/projects/cpp-httplib/build$ sudo cmake --build . --target install
+[sudo] password for punksystec:
+Install the project...
+-- Install configuration: ""
+-- Installing: /usr/local/include/httplib.h
+-- Installing: /usr/local/lib/cmake/httplib/httplibConfig.cmake
+-- Installing: /usr/local/lib/cmake/httplib/httplibConfigVersion.cmake
+-- Installing: /usr/local/lib/cmake/httplib/FindBrotli.cmake
+-- Installing: /usr/local/lib/cmake/httplib/httplibTargets.cmake
+punksystec@LAPTOP-CPH12905:~/projects/cpp-httplib/build$

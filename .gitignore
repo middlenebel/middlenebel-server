@@ -6,6 +6,10 @@
 
 *.out
 
+./nebel
+./proxy
+./Plugins
+
 ### VisualStudioCode ###
 .vscode/*      # Maybe .vscode/**/* instead - see comments
 !.vscode/settings.json

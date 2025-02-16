@@ -1,0 +1,232 @@
+{
+	"info": {
+		"_postman_id": "26a81115-7a9c-4647-8c67-bbefb2d9e3b0",
+		"name": "NebelDocker",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33129666"
+	},
+	"item": [
+		{
+			"name": "hi",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response Ok\", function(){ pm.response.to.have.status(200); });\r",
+							"pm.test(\"Response message Ok\", () =>{\r",
+							"     pm.response.to.be.ok;\r",
+							"     pm.expect(pm.response.text());\r",
+							"     pm.expect(pm.response.text()).to.include(\"Hello World! Hi!\");\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/hi",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"hi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "components",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response Ok\", function(){ pm.response.to.have.status(200); });\r",
+							"pm.test(\"Response is JSon valid\", () =>{\r",
+							"     pm.response.to.be.ok;\r",
+							"     pm.response.to.be.withBody;\r",
+							"     pm.response.to.be.json;\r",
+							"})\r",
+							"pm.test(\"All componentes has 'name' and 'className'\", () =>{\r",
+							"    let jsonData = pm.response.json();\r",
+							"    _.each(jsonData, (item) => {\r",
+							"        pm.expect(item.name);\r",
+							"        pm.expect(item.className);\r",
+							"    })\r",
+							"});\r",
+							"pm.test(\"Exists component Core'\", () => {\r",
+							"    let jsonData = pm.response.json();\r",
+							"    let core = jsonData.find(a => a.name === 'Core');\r",
+							"    pm.expect(core.className).to.equal(\"Core\");\r",
+							"});\r",
+							"pm.test(\"Core has a Platform'\", () =>{\r",
+							"    let jsonData = pm.response.json();\r",
+							"    let core = jsonData.find(a => a.name === 'Core');\r",
+							"    pm.expect(core.childs).exist;\r",
+							"    let platform = core.childs.find(a => a.className === 'Platform');\r",
+							"    //(?) let Optional<String> oPlatform = Optionl.of( platform );\r",
+							"    pm.expect(platform);\r",
+							"});\r",
+							"pm.test(\"Check K8S-MySQL'\", () =>{\r",
+							"    let jsonData = pm.response.json();\r",
+							"    let core = jsonData.find(a => a.name === 'Core');\r",
+							"    pm.expect(core.childs);\r",
+							"    let platform = core.childs.find(a => a.className === 'Platform');\r",
+							"    pm.expect(platform);\r",
+							"    if (platform!=undefined && platform.childs!=undefined){\r",
+							"        let mysql = platform.childs.find(a => a.className === 'K8S-MySQL');\r",
+							"        //(?) let Optional<String> oPlatform = Optionl.of( platform );\r",
+							"        if (mysql && mysql != \"\"){\r",
+							"            pm.expect(mysql.actions);\r",
+							"            pm.expect(core.portForwards);\r",
+							"            let portForwards = core.portForwards.find(a => a.className === 'K8S-MySQL-PortForward');\r",
+							"            pm.expect(portForwards);\r",
+							"        }\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/components",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"components"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response Ok\", function(){ pm.response.to.have.status(200); });\r",
+							"pm.test(\"Response message Ok\", () =>{\r",
+							"    pm.response.to.be.ok;\r",
+							"    let jsonData = pm.response.json();\r",
+							"    pm.expect( jsonData.result ).to.eql(\"OK\");\r",
+							"    pm.expect( jsonData.message ).to.eql(\"Reload success!\");\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/reload",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"reload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "clearLog",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response Ok\", function(){ pm.response.to.have.status(200); });\r",
+							"pm.test(\"Response message Ok\", () =>{\r",
+							"     pm.response.to.be.ok;\r",
+							"     pm.expect(pm.response.text());\r",
+							"     pm.expect(pm.response.text()).to.include(\"Log cleaned!\");\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/clearLog",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"clearLog"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "save-script-nebel",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response Ok\", function(){ pm.response.to.have.status(200); });\r",
+							"pm.test(\"Response is JSon valid\", () =>{\r",
+							"     pm.response.to.be.ok;\r",
+							"     pm.response.to.be.withBody;\r",
+							"     pm.response.to.be.json;\r",
+							"})\r",
+							"pm.test(\"Response is OK & loaded!\", () =>{\r",
+							"    pm.response.to.have.jsonBody(\"result\", \"OK\").\r",
+							"        and.have.jsonBody( \"message\", \"Save success!\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "//Test Nebel script\r\nPlatform: Middlenebel.",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/save-script",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"save-script"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,9 @@
+
+useConfig Default
+
+// PROXYPORT [Proxy ] ----> NEBELPORT [NEBELDOCKER]
+
+Config: Default
+    version 'Middlenebel Nebel-Docker v0.1.3-alpha'
+    nebelPort 8080
+.
