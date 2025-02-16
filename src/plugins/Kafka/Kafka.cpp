@@ -48,7 +48,7 @@ void Kafka::parse(){
     string value="";
     Core* core = (Core*) getRootComponent( this );
     while ( readToken() ){
-        //DEBUG LOG( "\Kafka TOKEN: " << token );
+        //DEBUG LOG( "\Kafka TOKEN: " + token );
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
@@ -73,43 +73,36 @@ void Kafka::parse(){
     }
 }
 
-string Kafka::doPlay(){
-     string result = "";
-     try{
-        string nameSpace=getAtt( ATT_NAMESPACE, "nebel");
-        string fileName, command, resultCommand;
-        
-        command = "kubectl create namespace "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Create namespace "+nameSpace )+"\n";
+void Kafka::doPlay(std::list<string> *cmds){
+    string nameSpace=getAtt( ATT_NAMESPACE, "nebel");
+    string fileName, command, resultCommand;
+    
+    command = "kubectl create namespace "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Create namespace "+nameSpace )+"\n" );
 
-        fileName="./cfgPlugins/deploy-zookeeper.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy zookeeper")+"\n";
-            //,fileName, Util::loadFile(fileName) );
+    fileName="./cfgPlugins/deploy-zookeeper.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy zookeeper")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 
-        fileName="./cfgPlugins/deploy-kafka-broker.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy kafka-broker")+"\n";
-            //,fileName, Util::loadFile(fileName) );
+    fileName="./cfgPlugins/deploy-kafka-broker.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy kafka-broker")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 
-        fileName="./cfgPlugins/service-zookeeper.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service zookeeper")+"\n";
-            //,fileName, Util::loadFile(fileName) );
+    fileName="./cfgPlugins/service-zookeeper.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service zookeeper")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 
-        fileName="./cfgPlugins/service-kafka-broker.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service kafka-broker")+"\n";
-            //,fileName, Util::loadFile(fileName) );
+    fileName="./cfgPlugins/service-kafka-broker.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service kafka-broker")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 
-        LOG( "K8S-Kafka "+attributes[ATT_NAME] + " deployed!" );
-     }catch(...){
-          result = "ERROR (Kafka.doPlay)";
-     }
-     return result;
+    LOG( "K8S-Kafka "+attributes[ATT_NAME] + " deployed!" );
 }
-string Kafka::doDestroy(){
-     string result = "";
+void Kafka::doDestroy(std::list<string> *cmds){
      try{
         string name=attributes[ATT_NAME];
         string nameSpace=getAtt(ATT_NAMESPACE, "default");
@@ -118,38 +111,36 @@ string Kafka::doDestroy(){
 
         try{
             command = "kubectl delete deployment zookeeper-object -n "+nameSpace;
-            result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deployment zookeeper")+"\n";
+            cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deployment zookeeper") );
         }catch(const std::exception& ex){
-            LOG("Exception deleting deployment zookeeper: "<<ex.what());
+            LOG("Exception deleting deployment zookeeper: "+std::string(ex.what()));
         }
 
         try{
             command = "kubectl delete deployment kafka-broker-object -n "+nameSpace;
-            result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deployment kafka-broker")+"\n";
+            cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deployment kafka-broker") );
         }catch(const std::exception& ex){
-            LOG("Exception deleting deployment afka-broker: "<<ex.what());
+            LOG("Exception deleting deployment kafka-broker: "+std::string(ex.what()));
         }
 
         try{
             command = "kubectl delete service zookeeper-object -n "+nameSpace;
-            result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service zookeeper")+"\n";
+            cmds->push_back(  systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service zookeeper") );
         }catch(const std::exception& ex){
-            LOG("Exception deleting service zookeeper: "<<ex.what());
+            LOG("Exception deleting service zookeeper: "+std::string(ex.what()));
         }
         try{
             command = "kubectl delete service kafka-broker-object -n "+nameSpace;
-            result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service kafka-broker")+"\n";
+            cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service kafka-broker") );
         }catch(const std::exception& ex){
-            LOG("Exception K8S-Kafka: "<<ex.what());
+            LOG("Exception K8S-Kafka: "+std::string(ex.what()));
         }
 
         LOG( "Undeploy K8S-Kafka "+attributes[ATT_NAME] ); //Can have " in the message + ": " + resultCommand);
      }catch(const std::exception& ex){
-        LOG("Exception "<<ex.what());
+        LOG("Exception "+std::string(ex.what()));
         LOG( "ERROR Undeploy K8S-Kafka "+attributes[ATT_NAME] );
-        result = "ERROR (Kafka.doDestroy)";
      }
-     return result+Component::doDestroy();
 }
 
 string Kafka::execute( string json ){

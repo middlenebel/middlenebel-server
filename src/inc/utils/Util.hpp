@@ -60,18 +60,7 @@ class Util{
     Util::middlenebelLog.close(); \
 })
 
-#define LOG( A ) ({ \
-    Util::middlenebelLog.open("middlenebel.log", std::ios_base::app); \
-    Util::middlenebelLog << A << "\n"; \
-    Util::middlenebelLog.close();\
-    /* DEBUG(A); // Replication */ \
-})
-
-#define LOG_INIT_FILE( A , FILE ) ({ \
-    Util::middlenebelLogFile.open(FILE); \
-    Util::middlenebelLogFile << A << "\n"; \
-    Util::middlenebelLogFile.close(); \
-})
+#define LOG( A ) ( getCore()->log( A ) )
 
 #define LOG_FILE( A , FILE ) ({ \
     Util::middlenebelLogFile.open(FILE, std::ios_base::app); \
@@ -103,7 +92,11 @@ class Util{
         TARGET += (std::next(child) != LIST.end() ? ",\n" : "\n");\
     } \
 }
-
+#define LIST_TO_STRING_PLAIN(LIST, TARGET) { \
+    for (std::list<string>::iterator child = LIST.begin(); child != LIST.end(); ++child){ \
+        TARGET += (*child); \
+    } \
+}
 #define MAP_TO_STRING(MAP, TARGET) { \
     for (std::map<string,string>::iterator child = MAP.begin(); child != MAP.end(); ++child){ \
         TARGET += (string)"[\"" + (child->first) + "\""; \

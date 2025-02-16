@@ -31,8 +31,8 @@ class Kafka : public Component{
 
         void parse();
 
-        string doPlay();
-        string doDestroy();
+        void doPlay(std::list<std::string> *cmds);
+        void doDestroy(std::list<std::string> *cmds);
         
         string execute( string actionName );
         string executeProducer(string json);

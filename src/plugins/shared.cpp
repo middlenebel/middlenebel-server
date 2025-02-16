@@ -13,6 +13,7 @@
 
 #include "../incPlugins/shared.hpp"
 #include "../inc/Component.hpp"
+#include "../inc/Core.hpp"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ extern "C" void parse(void* instance ){
 }
 
 Shared::Shared(Component* parent):Component(parent){ 
-  LOG("Shared made by " << parent->attributes[ATT_NAME]);
+  LOG("Shared made by " + parent->attributes[ATT_NAME]);
   parent->addComponent(this);
   parent->objectsNum++; //On deleting objects the parent delete this as his child.
 }
@@ -49,7 +50,7 @@ string Shared::execute( string json ){
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
-    LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
+    LOG( "Connection isValid? " + std::string((con->isValid()?"true":"false")) );
 
     // con->setSchema("NEBEL_DB"); //Throw exception if not exists.
     bool result = false;
@@ -57,7 +58,7 @@ string Shared::execute( string json ){
     stmt->execute("CREATE DATABASE IF NOT EXISTS NEBEL_DB"); //CREATE DATABASE IF NOT EXISTS NEBEL_DB
     stmt->execute("USE NEBEL_DB");
     result = stmt->execute("DROP TABLE IF EXISTS nebel");
-    LOG("DROP TABLE Result: " << (result?"true":"false"));
+    LOG("DROP TABLE Result: " + std::string((result?"true":"false")));
 
     stmt->execute("CREATE TABLE nebel(id INT, label CHAR(1))");
     stmt->execute("INSERT INTO nebel(id, label) VALUES (1, 'a')");

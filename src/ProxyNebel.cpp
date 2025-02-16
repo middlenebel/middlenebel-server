@@ -8,6 +8,7 @@
 #include "inc/Config.hpp"
 #include "inc/Browser.hpp"
 
+#define LOG_COUT( A ) ( cout << A << "\n" )
 #define SERVER_REINTENTS 3
 
 using namespace std;
@@ -19,26 +20,9 @@ int main(){
     bool runServer = true;
     HttpServer svr;
 
-    // svr.Options(R"(\*)", [](const auto& req, auto& res) {
-    //     res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
-    // });
-
-    // svr.Options("/components", [](const auto& req, auto& res) {
-    //     res.set_header("Access-Control-Allow-Origin", "*" ); //req.get_header_value("Origin").c_str());
-    //     res.set_header("Access_Control_Allow_Credentials", "true" );
-    //     // res.set_header("Allow", "GET, POST, HEAD, OPTIONS");
-    //     // res.set_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Accept, Origin, Authorization");
-    //     // res.set_header("Access-Control-Allow-Methods", "OPTIONS, GET, POST, HEAD");
-    // });
-
-    // Component::systemCommand( "rm *.log" );
-    // Component::systemCommand( "rm *.out" );
-
     Config config( CONFIG_FILE_PROXY );
 
     //string nebelVersion = config.cfg( VERSION, "Middlenebel v0.1.3-alpha Nebel-Docker" );
-    std::cout << "Hello World!\n";
-    LOG_INIT( "Hello World!\n" );
     DEBUG( cout << "WARNING DEBUG IS ENABLED!!!" <<"\n" );
 
     if (config.cfg( ATT_FRONT ) == CFG_LITE ){  //TODO liteServer has config file
@@ -95,13 +79,15 @@ std::cout << "nebelPort...\n";
             res.body = executeCommandList( resCli.value().body, scheme_host_port );
         }
     })
+
     .Get("/destroy", [scheme_host_port](const Request &, Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*" );
         res.set_header("Access_Control_Allow_Credentials", "true" );        
-        //DEBUG cout << "PROXY/destroy Received" << "\n";
+        DEBUG( cout << "PROXY/destroy Received" << "\n" );
         HttpClient cli( scheme_host_port ); 
         if (HttpClient::Result resCli = cli.Get("/destroy")) { 
-            res.set_content(resCli.value().body, "application/json");
+            res.status = resCli.value().status;
+            res.body = executeCommandList( resCli.value().body, scheme_host_port );
         }else{
             res.status=505; //TODO search errors
         }
@@ -206,10 +192,10 @@ std::cout << "GETs.\n";
     runServer = config.cfg( ATT_DISABLE_PROXY ) != CFG_TRUE;
 std::cout << "runServer " << runServer << ".\n";    
     if (runServer){
-        LOG( "Starting proxy in port " << proxyPort );
+        LOG_COUT( "Starting proxy in port " << proxyPort );
         std::cout << "Starting proxy in port " << proxyPort << "\n";
     }else
-        LOG("Main: Server is disabled by configuration! Skipping...");
+        LOG_COUT("Main: Server is disabled by configuration! Skipping...");
 
     HttpClient cli( scheme_host_port ); 
     std::cout << "Looking for Nebel server at port " << scheme_host_port << "\n";
@@ -220,20 +206,20 @@ std::cout << "runServer " << runServer << ".\n";
     svr.listen("0.0.0.0", proxyPort);
     std::cout << "proxy end!\n";
     
-    LOG( "Quit!" );
+    LOG_COUT( "Quit!" );
 
-    LOG(  "Cleaning memory... objects: " + to_string( config.getObjectNum() ) );
+    LOG_COUT(  "Cleaning memory... objects: " + to_string( config.getObjectNum() ) );
     config.doQuit();
-    LOG(  "Clean result objects: " + to_string( config.getObjectNum() ) );
+    LOG_COUT(  "Clean result objects: " + to_string( config.getObjectNum() ) );
 
-    LOG( "Finished Middlenebel back-end!");
+    LOG_COUT( "Finished Middlenebel back-end!");
     std::cout << "Finished Middlenebel back-end!";
     return 0;
 }
 
 void processRequest(string url, Response& res){
     if (url == "") url = "index.html";
-        cout << "DEBUG: URL " << url << "\n";
+       //DEBUG std::cout << "DEBUG: URL " << url << "\n";
         string content = "";
         if (Util::endsWith( url, ".png")){
             // std::vector<unsigned char> binaryData = Util::loadFileImage("./dist/" + url);
@@ -242,7 +228,7 @@ void processRequest(string url, Response& res){
         }else
             content = Util::loadFileRaw( "./dist/" + url );
 
-        //cout << "DEBUG: Content " << content << "\n";
+        //std::cout << "DEBUG: Content " << content << "\n";
         string contentType = "text/plain";
         if (Util::endsWith( url, ".html")) contentType="text/html";
         else if (Util::endsWith( url, ".css")) contentType="text/css";
@@ -257,21 +243,21 @@ void processRequest(string url, Response& res){
 }
 
 string executeCommandList( string commandList, string scheme_host_port){
-    cout << "executeCommandList\n";
-    //DEBUG cout << commandList << "\n";
+    std::cout << "executeCommandList\n";
     string response="";
     Json::Value root;
     Json::Reader reader; //std::stringstream sstr(json);
-    bool isOk = reader.parse( commandList, root ); // sstr >> api;
+    bool isOk = reader.parse( commandList, root );
     if (isOk){
         Json::Value cmdList = root["commandList"];
-        cout << "executeCommandList JSON Ok " << cmdList.size() << " commands\n";
+        std::cout << "executeCommandList JSON Ok " << cmdList.size() << " commands\n";
         for ( unsigned int index = 0; index < cmdList.size(); ++index ){
-            cout << "executeCommandList Item " << index << "\n";
+            //
+            DEBUG( cout << "executeCommandList Item " << index << "\n");
             const Json::Value cmdValue = cmdList[index]["command"];
             string cmdValueStr = cmdValue.asString();
 
-            cout << "executeCommandList CMD " << cmdValueStr << "\n";
+            DEBUG( std::cout << "executeCommandList CMD " << cmdValueStr << "\n" );
 
             if (cmdValueStr == "ERROR") break;
 
@@ -293,7 +279,7 @@ string executeCommandList( string commandList, string scheme_host_port){
                     // res.status = resCli.value().status;
                     // res.body = resCli.value().body;
                     Util::writeFile( fileValueStr, resCli.value().body);
-                    cout << "DEBUG Writted " << fileValueStr << "\n";
+                    std::cout << "DEBUG Writted " << fileValueStr << "\n";
                 };
             }
             
@@ -302,8 +288,60 @@ string executeCommandList( string commandList, string scheme_host_port){
         }
     }else{
         response+="ERROR processing request!\n";
-        cout << "executeCommandList: ERROR in JSON\n";
-        cout << reader.getFormattedErrorMessages() << "\n";
+        std::cout << "executeCommandList: ERROR in JSON\n";
+        std::cout << reader.getFormattedErrorMessages() << "\n";
+    }
+    return response;
+}
+
+string executeYamlList( string commandList, string scheme_host_port){
+    std::cout << "executeYamlList\n";
+    string response="";
+    Json::Value root;
+    Json::Reader reader; //std::stringstream sstr(json);
+    bool isOk = reader.parse( commandList, root );
+    if (isOk){
+        Json::Value cmdList = root["commandList"];
+        std::cout << "executeCommandList JSON Ok " << cmdList.size() << " commands\n";
+        for ( unsigned int index = 0; index < cmdList.size(); ++index ){
+            //
+            DEBUG( cout << "executeCommandList Item " << index << "\n");
+            const Json::Value cmdValue = cmdList[index]["command"];
+            string cmdValueStr = cmdValue.asString();
+
+            DEBUG( std::cout << "executeCommandList CMD " << cmdValueStr << "\n" );
+
+            if (cmdValueStr == "ERROR") break;
+
+            const Json::Value msgValue = cmdList[index]["msg"];
+            string msgValueStr = msgValue.asString();
+
+            const Json::Value fileValue = cmdList[index]["fileName"];
+            if (fileValue){
+                string fileValueStr = msgValue.asString();
+
+                const Json::Value contValue = cmdList[index]["fileContent"];
+                string contValueStr = msgValue.asString();
+
+                // if ( contValueStr != ""){
+                //     Util::writeFile( fileValueStr, contValueStr);
+                // }
+                HttpClient cli( scheme_host_port ); 
+                if (HttpClient::Result resCli = cli.Get("/"+fileValueStr)) { 
+                    // res.status = resCli.value().status;
+                    // res.body = resCli.value().body;
+                    Util::writeFile( fileValueStr, resCli.value().body);
+                    std::cout << "DEBUG Writted " << fileValueStr << "\n";
+                };
+            }
+            
+            Component::systemCommand( cmdValueStr , "system.out", "system-error.out");
+            response+=msgValueStr+"\n";
+        }
+    }else{
+        response+="ERROR processing request!\n";
+        std::cout << "executeCommandList: ERROR in JSON\n";
+        std::cout << reader.getFormattedErrorMessages() << "\n";
     }
     return response;
 }

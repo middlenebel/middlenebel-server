@@ -107,7 +107,7 @@ void K8S::parseDeployment(){
      bool parsedName = false;
      string key="", value="";
      while ( readToken() ){
-          //DEBUG         LOG( "\nDeployment TOKEN: " << token );
+          //DEBUG         LOG( "\nDeployment TOKEN: " + token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
@@ -133,7 +133,7 @@ void K8S::parseNamespace(){
      bool parsedName = false;
      string key="", value="";
      while ( readToken() ){
-          //DEBUG         LOG( "\nDeployment TOKEN: " << token );
+          //DEBUG         LOG( "\nDeployment TOKEN: " + token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
@@ -153,7 +153,7 @@ void K8S::parseService(){
      bool parsedName = false;
      string key="", value="";
      while ( readToken() ){
-          //DEBUG         LOG( "\nDeployment TOKEN: " << token );
+          //DEBUG         LOG( "\nDeployment TOKEN: " + token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
@@ -176,7 +176,7 @@ void K8S::parseLabels( Component* k8sElement ){
      // k8sElement->labels.insert( label );
      string key="", value="";
      while ( readToken() ){
-          //DEBUG         LOG( "\K8SLabel TOKEN: " << token );
+          //DEBUG         LOG( "\K8SLabel TOKEN: " + token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
@@ -189,7 +189,7 @@ void K8S::parseEnv( K8SDeployment* k8sDep ){
 
      string key="", value="";
      while ( readToken() ){
-          //DEBUG         LOG( "\K8SEnv TOKEN: " << token );
+          //DEBUG         LOG( "\K8SEnv TOKEN: " + token );
 
           if (isBlanc()) { SEG_SHOW_BLANC(); }
           else if (isToken( TK_POINT )){ return; }
@@ -205,12 +205,12 @@ void K8S::parseJsonConfig(string json){
           LOG( "K8S Error in API json!");
           return;
      }
-     //DEBUG      LOG( "API " << api["versions"] );
+     //DEBUG      LOG( "API " + api["versions"] );
 
      const Json::Value versions = api["versions"];
      JSON_ARRAY_TO_LIST(versions, k8s_versions);
      // for (std::list<string>::iterator child = k8s_versions.begin(); child != k8s_versions.end(); ++child)
-     //      LOG( "VERSION " << (*child) );
+     //      LOG( "VERSION " + (*child) );
 
      LOG( "K8S Config loaded." );
 }
@@ -263,35 +263,28 @@ string K8S::getJsonServices(){
     return jsonServices;
 }
 
-string K8S::doPlay(){
-     cout << "K8S::doPlay " << 
-          k8s_namespaces.size() << " " << k8s_deployments.size() << " " << k8s_services.size() << "\n";
-     string result = "";
+void K8S::doPlay(std::list<std::string> *cmds){
      for (std::list<K8SNamespace*>::iterator aNamespace = k8s_namespaces.begin(); aNamespace != k8s_namespaces.end(); ++aNamespace){
-          result += (*aNamespace)->apply();
+          cmds->push_back( (*aNamespace)->apply() );
      }
      for (std::list<K8SDeployment*>::iterator deploy = k8s_deployments.begin(); deploy != k8s_deployments.end(); ++deploy){
-          result += (*deploy)->apply();
+          cmds->push_back( (*deploy)->apply() );
      }
      for (std::list<K8SService*>::iterator service = k8s_services.begin(); service != k8s_services.end(); ++service){
-          result += (*service)->apply();
+          cmds->push_back( (*service)->apply() );
      }
-     return result;
 }
-
-string K8S::doDestroy(){
-     string result = "";
+void K8S::doDestroy(std::list<string> *cmds){
      for (std::list<K8SDeployment*>::iterator deploy = k8s_deployments.begin(); deploy != k8s_deployments.end(); ++deploy){
-          result += (*deploy)->destroy();
+          cmds->push_back( (*deploy)->destroy() );
      }
      for (std::list<K8SService*>::iterator service = k8s_services.begin(); service != k8s_services.end(); ++service){
-          result += (*service)->destroy();
+          cmds->push_back( (*service)->destroy() );
      }
      for (std::list<K8SNamespace*>::iterator aNamespace = k8s_namespaces.begin(); aNamespace != k8s_namespaces.end(); ++aNamespace){
-          result += (*aNamespace)->destroy();
+          cmds->push_back( (*aNamespace)->destroy() );
      }
-     return result + Component::doDestroy();
-}
+ }
 
 string K8S::doQuit(){
      LOG( attributes[ATT_NAME] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
@@ -334,43 +327,3 @@ int K8S::getObjectNum(){
      }
      return n;
 }
-
-/* K8S cubectl
---------------
-
-kubectl get namespaces
-kubectl get pods -n kube-system
-
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
-
-kubectl -n kubernetes-dashboard create token admin-user --duration=6000h
-kubectl -n kubernetes-dashboard create token admin-user --duration=6000h
-kubectl  create token --help
-eyJhbGciOiJSUzI1NiIsImtpZCI6Im8wdU5ocUIzN2o4Z01oQ2dRS1lZalEza203N19QbTFfMDNCUGlwQ3drMzQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzAyNTUyMjYwLCJpYXQiOjE3MDI1NDg2NjAsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJhZG1pbi11c2VyIiwidWlkIjoiZjJjMDk4MDMtNzc1Mi00ODM1LWFiNzYtODhjMTE4ZjI3OTBlIn19LCJuYmYiOjE3MDI1NDg2NjAsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDphZG1pbi11c2VyIn0.nDRrmi4RHdOgqJwLhvBavdaQxi3BkzFo4_9Wl2Jeuv_IdLrqd-wXr243anN1Bm-T1xOW9oGwrJj2MLPoRcieJclt6LpNY47ZDZvfVPzQv07yl02UoVY3ODEWFjGWpURbVi-PsD3rlxEQj9RhbxPvL7FANshwJ4Fqea3xljGAP0-2VTVIGxmcACr_wtO5KywaPwAlQtMeeGU7ZVwLgQyCuyiC20-sxlhqOqzsSa8hVvezXpUcCzOljVIKhaXyD5yLjlRTsQD5HN3jOCaNh5iG6bJRY7heVVnE2FHVzyE0FlOo7pA4aisysCOgKOC7Ff3vJeYMExnAjoJ8Ingkf-QlBA
-
-
-http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
-
-kubectl edit deployment -n kubernetes-dashboard kubernetes-dashboard --token-ttl=43200
-
-kubectl patch --namespace kubernetes-dashboard deployment \
-  kubernetes-dashboard --type='json' --patch \
- '[{"op": "add", "path": "/spec/template/spec/containers/0/args/2", "value": "--token-ttl=43200" }]'
-
-kubectl patch --namespace kubernetes-dashboard deployment \
-  kubernetes-dashboard --type='json' --patch \
- '[{"op": "add", "path": "/spec/template/spec/containers/0/args/2", "value": "--token-ttl=0" }]'
-
---- KAFKA-CAT
-kubectl get pods -n kafka
-kubectl port-forward kafka-broker-6847548f89-7dk79 9092 -n kafka
-
-echo "hello world!" | kafkacat -P -b localhost:9092 -t purchases
-
-kcat -C -b localhost:9092 -t purchases
-
-kubectl exec --stdin --tty mysql-nebel-855649bd5c-7c85d -- /bin/bash
-kubectl -n mysql-nebel exec --stdin --tty mysql-nebel-855649bd5c-7c85d -- /bin/bash
-
-kubectl port-forward mysql-nebel-855649bd5c-zzpbc 3306 -n mysql-nebel
-*/

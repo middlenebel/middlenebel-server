@@ -28,7 +28,6 @@ RUN cmake --build /app/third_party/cpp-httplib/build --target install
 # Compile Middlenebel
 WORKDIR /app/src
 RUN make all
-RUN make buildPlugins 
 
 FROM debian
 

@@ -38,14 +38,13 @@ string K8SNamespace::apply(){
      return result;
 }
 string K8SNamespace::destroy(){//TODO rename
-     string result = "OK";
+     string result = "";
      try{
           string name=attributes[ATT_NAME];
           if (name=="")
-               return "No namespace found to remove";
+               return "No namespace found to remove"; //TODO to manage error
           string command = "kubectl delete namespace "+name; //+" &";
           result = systemCommandList(command, attributes[ATT_APP],getAtt(ATT_NAMESPACE),"?","Remove namespace "+attributes[ATT_NAME]);
-
           LOG( "Destroy namespace "+attributes[ATT_NAME]);
      }catch(...){
           result = "ERROR K8SNamespace.destroy";

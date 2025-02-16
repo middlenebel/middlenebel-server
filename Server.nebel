@@ -1,7 +1,0 @@
-
-useConfig Default
-
-Config: Default
-    version 'Middlenebel v0.1.3-alpha Nebel-Docker'
-    serverPort 8080
-.

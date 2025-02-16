@@ -5,6 +5,8 @@
 #include "inc/Browser.hpp"
 #include "inc/utils/Util.hpp"
 
+#define LOG_COUT( A ) ( cout << A << "\n" )
+
 namespace fs = std::filesystem;
 
 Browser::Browser(){
@@ -96,15 +98,15 @@ string Browser::doBrowserAction(string json){
                 path += ((baseStr!="/")?"/":"") + nameStr;
             //}
             pathTo += ((baseStr!="/")?"/":"") + newValueStr;
-            LOG("Rename from "<<path<<" to "<<pathTo);
+            LOG_COUT("Rename from "+path+" to "+pathTo);
             try{
                 fs::rename(path, pathTo);
                 result = "OK";
                 message = (string)"Folder "+path+" renamed to "+pathTo;
             }catch(const std::exception& ex){
-                LOG("Exception "<<ex.what());
                 result = "KO";
                 message = (string)"Exception "+ex.what();
+                LOG_COUT("Exception "+message);
             }
         }else if (actionStr == "loadScript"){
             if (isFolder){

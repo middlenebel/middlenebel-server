@@ -73,7 +73,6 @@
 
 #define CREATE_NEBEL( NAME, A, B ) { \
     LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
-    LOG_FILE((string)"CREATING + "+NAME, "memory.log"); \
     A = new B; \
     objectsNum++; \
 }
@@ -124,11 +123,10 @@ class Component : public enable_shared_from_this<Component>{
 
         void parseControl();
         void parseDebug();
-        
-        void* loadLibrary(string librarypath);
         void parseComment();
 
     protected:
+        void* loadLibrary(string librarypath);
         virtual void parsePortForward();
         
     public:
@@ -148,7 +146,7 @@ class Component : public enable_shared_from_this<Component>{
 
         Component();
         Component(Component* parent);
-        Core* getCore();
+        virtual Core* getCore();
 
         virtual int getObjectNum();
 
@@ -195,7 +193,9 @@ class Component : public enable_shared_from_this<Component>{
 
         virtual void parse();
         virtual string doPlay();
+        virtual void doPlay(std::list<std::string> *cmds);
         virtual string doDestroy();
+        virtual void doDestroy(std::list<std::string> *cmds);
         virtual string doQuit();
 
         virtual string startPortForward(PortForward* pf);

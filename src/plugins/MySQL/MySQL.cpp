@@ -32,7 +32,7 @@ extern "C" void parse(void* instance ){
 }
 
 MySQL::MySQL(Component* parent):Component(parent){ 
-  LOG("MySQL made by " << parent->attributes[ATT_NAME]);
+  LOG("MySQL made by " + parent->attributes[ATT_NAME]);
 
   init();
 //   parent->addComponent(this); //Do it in loadPlugin()
@@ -49,14 +49,14 @@ void MySQL::parse(){
     string value="";
     // Core* core = (Core*) getRootComponent( this );
     while ( readToken() ){
-        //DEBUG LOG( "NebelComp TOKEN: " << token );
+        //DEBUG LOG( "NebelComp TOKEN: " + token );
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
         else if (isToken( TK_PORT_FORWARD )){ parsePortForward(); }
         else if (isToken( TK_INITIALIZE )){ parseInitialize(); }
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of component
-            LOG( "MySQL " << token );
+            LOG( "MySQL " + token );
             attributes[ATT_NAME] = token;
             parsedName = true;
 
@@ -76,48 +76,41 @@ void MySQL::parseInitialize(){
     string value="";
     // Core* core = (Core*) getRootComponent( this );
     while ( readToken() ){
-        //DEBUG LOG( "NebelComp TOKEN: " << token );
+        //DEBUG LOG( "NebelComp TOKEN: " + token );
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of component
-            LOG( "MySQL Initialize" << token );
+            LOG( "MySQL Initialize" + token );
             attributes[ ATTRIB_INITIALIZE ] = token;
             parsedName = true;
         }else if ( !parsedScript && token.compare( "" ) != 0 ){ // Gets the name of component
-            LOG( "MySQL Script: " << token );
+            LOG( "MySQL Script: " + token );
             attributes[ ATTRIB_INITIALIZE_SCRIPT ] = token;
             parsedScript = true;
         } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
     }
 }
 
-string MySQL::doPlay(){
-     string result = "";
-     try{
-        LOG("K8S-MySQL Deploying...");
-        string nameSpace=getAtt(ATT_NAMESPACE, "default");
-        
-        string fileName, command;
+void MySQL::doPlay(std::list<string> *cmds){
+    LOG("K8S-MySQL Deploying...");
+    string nameSpace=getAtt(ATT_NAMESPACE, "default");
+    
+    string fileName, command;
 
-        LOG("K8S-MySQL Deploying app...");
-        fileName="./cfgPlugins/deploy-mysql-nebel.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy My-SQL")+"\n";
-            //,fileName, Util::loadFile(fileName) );
+    LOG("K8S-MySQL Deploying app...");
+    fileName="./cfgPlugins/deploy-mysql-nebel.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Deploy My-SQL")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 
-        LOG("K8S-MySQL Deploying services...");
-        fileName="./cfgPlugins/service-mysql-nebel.tmp.yaml";
-        command = "kubectl apply -f "+fileName+" -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service My-SQL")+"\n";
-            //,fileName, Util::loadFile(fileName) );
-    }catch(...){
-          result = "ERROR (MySQL.doPlay)";
-     }
-     return result;
+    LOG("K8S-MySQL Deploying services...");
+    fileName="./cfgPlugins/service-mysql-nebel.tmp.yaml";
+    command = "kubectl apply -f "+fileName+" -n "+nameSpace;
+    cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service My-SQL")+"\n" );
+        //,fileName, Util::loadFile(fileName) );
 }
-string MySQL::doDestroy(){
-     string result = "OK";
+void MySQL::doDestroy(std::list<string> *cmds){
      try{
         string name=attributes[ATT_NAME];
         string nameSpace=getAtt(ATT_NAMESPACE, "default");
@@ -125,16 +118,14 @@ string MySQL::doDestroy(){
         string command, resultCommand;
 
         command = "kubectl delete deployment mysql-nebel -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deploy My-SQL")+"\n";
+        cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove deploy My-SQL") );
 
         command = "kubectl delete service mysql-nebel -n "+nameSpace;
-        result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service My-SQL")+"\n";
+        cmds->push_back( systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Remove service My-SQL") );
 
         LOG( "Destroyed K8S-MySQL "+attributes[ATT_NAME]); // Can have " in the messages  + ": " + resultCommand);
      }catch(...){
-          result = "ERROR (MySQL.doDestroy)";
      }
-     return result + Component::doDestroy();
 }
 string MySQL::doQuit(){
     return Component::doQuit();
@@ -178,7 +169,7 @@ string MySQL::execute( string json ){
     }
 
     //DEBUG 
-    LOG(  "NebelComp actionStr " << actionStr << " -> " << library);
+    LOG(  "NebelComp actionStr " + actionStr + " -> " + library);
 
     // sql::mysql::MySQL_Driver *driver;
     // sql::Connection *con;
@@ -187,7 +178,7 @@ string MySQL::execute( string json ){
     // driver = sql::mysql::get_mysql_driver_instance();
     // con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
-    // LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
+    // LOG( "Connection isValid? " + (con->isValid()?"true":"false") );
 
     // con->setSchema("NEBEL_DB"); //Throw exception if not exists.
     // bool result = false;
@@ -195,7 +186,7 @@ string MySQL::execute( string json ){
     // stmt->execute("CREATE DATABASE IF NOT EXISTS NEBEL_DB"); //CREATE DATABASE IF NOT EXISTS NEBEL_DB
     // stmt->execute("USE NEBEL_DB");
     // result = stmt->execute("DROP TABLE IF EXISTS nebel");
-    // LOG("DROP TABLE Result: " << (result?"true":"false"));
+    // LOG("DROP TABLE Result: " + (result?"true":"false"));
 
     // stmt->execute("CREATE TABLE nebel(id INT, label CHAR(1))");
     // stmt->execute("INSERT INTO nebel(id, label) VALUES (1, 'a')");
@@ -213,7 +204,7 @@ string MySQL::executeTestConn(){
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
-    LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
+    LOG( "Connection isValid? " + std::string((con->isValid()?"true":"false")) );
 
     delete con;
     return RETURN_EXECUTE_OK;
@@ -227,7 +218,7 @@ string MySQL::executeInitialize(){
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect("tcp://localhost:"+getAtt(ATT_PORT), "root", getAtt("pass"));
 
-    //LOG( "Connection isValid? " << (con->isValid()?"true":"false") );
+    //LOG( "Connection isValid? " + (con->isValid()?"true":"false") );
 
     bool result = executeScript(con, "./scripts/"+getAtt( ATTRIB_INITIALIZE_SCRIPT ));
 
@@ -236,7 +227,7 @@ string MySQL::executeInitialize(){
     // stmt->execute("CREATE DATABASE IF NOT EXISTS "+getAtt(ATT_NAME)); //CREATE DATABASE IF NOT EXISTS NEBEL_DB
     // stmt->execute("USE "+getAtt(ATT_NAME));
     // result = stmt->execute("DROP TABLE IF EXISTS nebel");
-    // LOG("DROP TABLE Result: " << (result?"true":"false"));
+    // LOG("DROP TABLE Result: " + (result?"true":"false"));
 
     // stmt->execute("CREATE TABLE nebel(id INT, label CHAR(1))");
     // stmt->execute("INSERT INTO nebel(id, label) VALUES (1, 'a')");
@@ -265,14 +256,13 @@ bool MySQL::executeScript(sql::Connection *con, string file){
                 stmt->execute( line );
                 //LOG( "SQL Execute OK!" );
             }catch(...){
-                LOG( "SQL Execute ERROR! " << line);
+                LOG( "SQL Execute ERROR! " + line);
                 resultOk = false;
             }
         } 
         scriptFile.close();
     }
     // std::replace( script.begin(), script.end(), '"', "'");
-    //DEBUG cout << "File: " << script << "\n";
 
     delete stmt;
     return resultOk;

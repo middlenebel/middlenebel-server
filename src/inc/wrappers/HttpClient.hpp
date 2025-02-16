@@ -57,7 +57,7 @@ class HttpClient : public httplib::Client{
       std::cout << "HttpClient - Get " << path << "\n";
       if (HttpClient::Result resCli = httplib::Client::Get( path )) { 
         if (resCli->status == httplib::StatusCode::OK_200) {
-          std::cout << "HttpClient - Get response: " << resCli.value().body << "\n";
+          //DEBUG std::cout << "HttpClient - Get response: " << resCli.value().body << "\n";
           return resCli; 
         }
       }

@@ -13,52 +13,33 @@ PLUGINSFLG=-shared
 
 PLUGINS=${PLUGINSFLG} ${PLUGINSOBG}
 
-full: nebel proxy buildPlugins2 copy
+SHAREPLUGINS= -shared Util.so Lexical.so Component.so Core.so
 
-all: nebel proxy
+all: commons nebel proxy buildPlugins
 
-Component.o: Component.cpp inc/Component.hpp inc/Core.hpp inc/Control.hpp inc/utils/Util.hpp ${HTTPSERVER}
+commons:
 	g++ -c Component.cpp ${CFLAGS2} ${HTTPFLAGS}
-Control.o: Control.cpp inc/Control.hpp
+	g++ -c ComponentNoCore.cpp ${CFLAGS2} ${HTTPFLAGS}
 	g++ -c Control.cpp ${CFLAGS2} ${HTTPFLAGS}
-Lexical.o: Lexical.cpp inc/Lexical.hpp inc/Core.hpp inc/utils/Util.hpp
 	g++ -c Lexical.cpp ${CFLAGS2} ${HTTPFLAGS}
-Config.o: Config.cpp ./inc/Component.hpp ./inc/utils/Util.hpp ./inc/Config.hpp
 	g++ -c Config.cpp ${CFLAGS2} ${HTTPFLAGS}
-Util.o: Util.cpp inc/utils/Util.hpp inc/Core.hpp
 	g++ -c Util.cpp ${CFLAGS2} ${HTTPFLAGS}
-Core.o: Core.cpp inc/utils/Util.hpp inc/Config.hpp inc/PortForward.hpp inc/Core.hpp ${HTTPSERVER}
 	g++ -c Core.cpp ${CFLAGS2} ${HTTPFLAGS}
-Browser.o: Browser.cpp inc/Browser.hpp ${HTTPSERVER}
 	g++ -c Browser.cpp ${CFLAGS2} ${HTTPFLAGS}
 
-nebel: NebelDocker.cpp Component.o Control.o Lexical.o Config.o Util.o Core.o ${HTTPSERVER}
+nebel: NebelDocker.cpp Component.o ComponentNoCore.o Control.o Lexical.o Config.o Util.o Core.o ${HTTPSERVER}
 #	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
 #	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto 
 	g++ -o nebel NebelDocker.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread 
 	cp nebel ..
 
-proxy: ProxyNebel.cpp Component.o Control.o Lexical.o Config.o Util.o Browser.o \
+proxy: ProxyNebel.cpp Component.o ComponentNoCore.o Control.o Lexical.o Config.o Util.o Browser.o \
 		${HTTPSERVER} ${HTTPCLIENT}
 #	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto -DCPPHTTPLIB_ZLIB_SUPPORT -lz -DCPPHTTPLIB_BROTLI_SUPPORT -I/usr/local/opt/brotli/include -L/usr/local/opt/brotli/lib -lbrotlicommon -lbrotlienc -lbrotlidec
 #	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread -DCPPHTTPLIB_OPENSSL_SUPPORT -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl@3/lib -lssl -lcrypto 
 	g++ -o proxy ProxyNebel.cpp *.o ${CFLAGS2} ${HTTPFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so -std=c++17 -Wall -Wextra -pthread
 	cp proxy ..
-
-copy:
-	cp nebel ..
-	cp proxy ..
-	cp plugins/*.so ../plugins
-
-all-old: build
-
-build: buildApp buildPlugins  
-
-buildApp:
-	g++ -c ${CFLAGS} *.cpp 
-	g++ -o main *.o ${CFLAGS} /lib/x86_64-linux-gnu/libjsoncpp.so 
-
-# ------------------------------------------------------------------------------
+	
 buildPlugins:
 	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp  $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
 	g++ -o plugins/K8S.so ${CFLAGS} plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
@@ -68,30 +49,14 @@ buildPlugins:
 	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
 	cp plugins/*.so ../plugins
 
-buildPlugins2: plugins/Platform.so plugins/K8S.so plugins/K8S-Kafka.so \
-	plugins/NebelComp.so plugins/shared.so plugins/K8S-MySQL.so
+# ------------------------------------------------------------------------------
+copy:
+	cp nebel ..
+	cp proxy ..
 	cp plugins/*.so ../plugins
 
-plugins/Platform.so: plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp $(PLUGINSOBG) 
-	g++ -o plugins/Platform.so ${CFLAGS} plugins/Platform/DockerDesktop.cpp plugins/Platform/Platform.cpp  $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
-
-plugins/K8S.so: plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINSOBG) 
-	g++ -o plugins/K8S.so ${CFLAGS} plugins/K8S/K8S.cpp plugins/K8S/K8SDeployment.cpp plugins/K8S/K8SNamespace.cpp plugins/K8S/K8SService.cpp plugins/K8S/K8SLabel.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
-
-plugins/K8S-Kafka.so: plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINSOBG) 
-	g++ -o plugins/K8S-Kafka.so ${CFLAGS} plugins/Kafka/Kafka.cpp plugins/Kafka/KafkaProducer.cpp plugins/Kafka/KafkaConsumer.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so /usr/lib/x86_64-linux-gnu/librdkafka.so /usr/lib/libcppkafka.so 
-
-plugins/NebelComp.so: plugins/NebelComp/NebelComp.cpp $(PLUGINSOBG)
-	g++ -o plugins/NebelComp.so ${CFLAGS} plugins/NebelComp/NebelComp.cpp $(PLUGINS) /lib/x86_64-linux-gnu/libjsoncpp.so
-
-plugins/shared.so: plugins/shared.cpp $(PLUGINSOBG)
-	g++ -o plugins/shared.so ${CFLAGS} plugins/shared.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
-
-plugins/K8S-MySQL.so: plugins/MySQL/MySQL.cpp $(PLUGINSOBG)
-	g++ -o plugins/K8S-MySQL.so ${CFLAGS} plugins/MySQL/MySQL.cpp $(PLUGINS) /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
-
 clean:
-	rm outyamls/* *.log *.out *.o plugins/*.so main proxy nebel 2> /dev/null || true
+	rm outyamls/* *.log *.out *.o *.so plugins/*.so main proxy nebel 2> /dev/null || true
 
 tests: testNebel testProxy
 

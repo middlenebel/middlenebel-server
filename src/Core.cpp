@@ -15,6 +15,8 @@
 #include "inc/Core.hpp"
 #include "inc/utils/Util.hpp"
 
+#define LOG_BUFFER_KEY "LOG-BUFFER"
+
 Core* Core::coreInstance = nullptr;
 
 namespace fs = std::filesystem;
@@ -46,6 +48,60 @@ void Core::init(){
 
     executors["test"] = this;
 }
+
+/* log(string line)
+    Añade una linea a la lista de strings.
+    DELETED IN doQuit
+*/
+void Core::log(string line){
+    logStrings.push_back("\"" + line + "\"");
+    std::cout << "LOGGING " <<  line << "\n";
+}
+
+/* getLog()
+    Devuelve un json array con las lineas del log: ["linea1", "linea2", ...]
+*/
+string Core::getLog(){
+    string result = "[";
+    LIST_TO_STRING( logStrings, result );
+    result += "]";
+    return result;
+}
+
+/* Component* Core::loadPlugin4Core(string pluginName)
+    Load a plugin like do Component but internaly for Core, outside of component tree. 
+*/
+#include <dlfcn.h> // dlopen, RTLD_LAZY, dlsym
+Component* Core::loadPlugin4Core(string pluginName){
+    string folder ="plugins/";
+    string extension = ".so";
+    void *libPlugin = loadLibrary(folder + pluginName + extension);
+
+    plugins.push_back( libPlugin );
+
+    //DEBUG LOG("Getting interface... " + pluginName);
+    void* (*loadPlugin)(Component*) = (void* (*) (Component*)) dlsym(libPlugin, "loadPlugin");
+    void (*parse)(void*) = (void (*) (void*)) dlsym(libPlugin, "parse");
+
+    // if couldn't find the function
+    if (loadPlugin == NULL) {
+        perror("ERROR\n[ERROR] dlsym");
+        printf( "---\n" );
+        printf( dlerror() );
+        printf( "\n---\n" );
+        exit(EXIT_FAILURE);
+    }
+    //DEBUG else{ LOG("Interface Ok!"); }
+
+    void* instance = loadPlugin(this);
+    Component* newComponent = (Component*) instance;
+    objectsNum++;
+    //loadPlugin4Core NOT ADD THE PLUGIN TO COMPONEN TREE
+    //addComponent( newComponent );
+
+    parse(instance);
+    return newComponent;
+}
 void Core::setConfig(Config* config){
     this->config = config;
 }
@@ -53,6 +109,9 @@ void Core::setReloadPromise( std::promise<int>&& reloadPromise ){
     this->reloadPromise = std::move(reloadPromise);
 }
 
+/* Core::load(string fileName)
+    Load an script and start to parsing if is not disabled in the configuration.
+*/
 void Core::load(string fileName){
     //this->oFileName = fileName; //TODO Save it only if parse ok (?)
     fileName = this->oFileName.value(); //Allways work with the same file
@@ -60,7 +119,7 @@ void Core::load(string fileName){
     bool loaded = lex->load(fileName);
   
     if (loaded && Util::endsWith(fileName , ".nebel")){
-        LOG("Core:loaded " << fileName);
+        LOG("Core:loaded " + fileName);
         if ( IS_NOT_CONFIG( ATT_DISABLE_PARSE, CFG_TRUE ) ){
             parse();
             LOG("Core: Parsing complete!");
@@ -97,21 +156,15 @@ bool Core::getComponents(const Request &req, Response &res){
     return RELOAD_FALSE;
 }
 bool Core::getPlay(const Request &req, Response &res){ 
-    cout << "Core::getPlay\n";
-    commandList.clear();
-    doPlay();
-
-    string commands;
-    LIST_TO_STRING( commandList, commands);
-    string json = "{\"commandList\":["+ commands + "]}"; //TODO format response
-
+    LOG("Deploying platform in target systems...");
+    string json = "{\"commandList\":["+ doPlay() + "]}"; //TODO format response
+    
     res.set_content(json, "application/json");  
     return RELOAD_FALSE;
 }
 bool Core::getDestroy(const Request &req, Response &res){ 
     LOG("Destroying platform in target systems...");
-    string json = "["+ doDestroy() + "]";
-    //DEPRECATED string json = "{ \"result\" : \"OK\" , \"message\" : \"Destroy success!\" }";
+    string json = "{\"commandList\":["+ doDestroy() + "]}"; //TODO format response
     res.set_content(json, "application/json"); 
     reloadPromise.set_value(1);
     return RELOAD_TRUE;
@@ -143,10 +196,14 @@ bool Core::postSaveScript(const Request &req, Response &res){
     return RELOAD_TRUE;
 }
 
+/* getLog
+    Devuelve el contenido del log como lista de strings como json array.
+    ["linea1","linea2",...]
+*/
 bool Core::getLog(const Request &req, Response &res){ 
-    string logContent = Util::loadFile( "middlenebel.log" );
+    string logContent = getLog();
     string json = 
-            (string) "{ \"result\" : \"OK\" , \"message\" : \""+ logContent +"\" }";
+            (string) "{ \"result\" : \"OK\" , \"message\" : "+ logContent +"}"; // logContent is a Json Array of strings
     res.set_content(json, "application/json");
     return RELOAD_FALSE;
 }
@@ -213,12 +270,12 @@ string Core::doExecuteAction(string json){
             try{
                 response = executor->execute( json );
             }catch(const std::exception& ex){
-                LOG("Exception "<<ex.what());
-                LOG("Exception in doExecuteAction! calling to " << executor->attributes[ATT_NAME]);
+                LOG("Exception " + std::string(ex.what()) );
+                LOG("Exception in doExecuteAction! calling to " + executor->attributes[ATT_NAME]);
             }
             return response;
         }else{
-            LOG("Executor not found for " << actionStr);
+            LOG("Executor not found for " + actionStr);
         }
     }
 
@@ -258,11 +315,11 @@ void Core::createPortForward(string actionPF, string app, string port, string na
         portForwards[actionPF] = pf;
 }
 string Core::startAllPortforwards(){
-    LOG("Core startPortforwards " << portForwardingRequested);
+    LOG("Core startPortforwards " + portForwardingRequested);
     portForwardingRequested = "";
     string commandList = "";
     for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){ 
-        LOG("Starting portForward " << (child->first) );
+        LOG("Starting portForward " + (child->first) );
         //startPortForward(child->second->appName, child->second->nameSpace, child->second->port);
         commandList += child->second->component->startPortForward( child->second );
         commandList += (std::next(child) != portForwards.end() ? ",\n" : "\n");
@@ -270,11 +327,11 @@ string Core::startAllPortforwards(){
     return "{\"commandList\":["+ commandList + "]}";
 }
 string Core::stopAllPortforwards(){
-    LOG("Core stopPortforwards " << portForwardingRequested);
+    LOG("Core stopPortforwards " + portForwardingRequested);
     portForwardingRequested = "";
     string commandList = "";
     for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){ 
-        LOG("Stopinging portForward " << (child->first) );
+        LOG("Stopinging portForward " + (child->first) );
         //startPortForward(child->second->appName, child->second->nameSpace, child->second->port);
         commandList += child->second->component->stopPortForward( child->second );
         commandList += (std::next(child) != portForwards.end() ? ",\n" : "\n");
@@ -286,11 +343,12 @@ string Core::doQuit(){
     string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
     stopAllPortforwards();
     for (std::map<string,PortForward*>::iterator child = portForwards.begin(); child != portForwards.end(); ++child){ 
-        LOG("Deleting portForward " << (child->first) );
+        LOG("Deleting portForward " + (child->first) );
         DELETE_NEBEL("PortForward", child->second);
     }
     portForwards.clear();
-    result += Component::doQuit(); // To delete childs
+    result += Component::doQuit(); // To delete childsDELETE_NEBEL("PortForward", child->second);
+    logStrings.clear();
     return result;
 }
 

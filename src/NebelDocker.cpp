@@ -20,6 +20,7 @@
 #include "inc/Core.hpp"
 #include "inc/Config.hpp"
 
+#define LOG_COUT( A ) ( cout << A << "\n" )
 #define SERVER_REINTENTS 3
 
 using namespace std;
@@ -32,22 +33,24 @@ void server_func(std::promise<int>&& reloadPromise ){
     // HttpServer svr;
     Core* core = Core::getInstance();
     Config config( CONFIG_FILE_NEBEL );
-
+std::cout << "config created " << CONFIG_FILE_NEBEL << "\n"; 
     core->setConfig(&config);
+std::cout << "config asigned " << CONFIG_FILE_NEBEL << "\n"; 
     core->setReloadPromise( std::move(reloadPromise) );
+std::cout << "config setReloadPromise " << CONFIG_FILE_NEBEL << "\n"; 
     std::string strServerPort = core->config->cfg(ATT_NEBELPORT, CFG_NEBELPORT);
     int nebelPort = stoi( strServerPort );
     std::cout << "Starting server at port " << nebelPort << "\n"; 
 
     core->load( "DEPRECATED" );
-    LOG("Core:Promise Load!");
+    LOG_COUT("Core:Promise Load!");
 
     svr.listen("0.0.0.0", nebelPort);
 
-    LOG(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
+    LOG_COUT(  "Cleaning memory... objects: " + to_string( core->getObjectNum() ) );
     config.doQuit();
     core->doQuit();
-    LOG(  "Clean result objects: " + to_string( core->getObjectNum() ) );
+    LOG_COUT(  "Clean result objects: " + to_string( core->getObjectNum() ) );
     delete(core);
 
     std::cout << "Stopping server at port " << nebelPort << "\n";
@@ -67,8 +70,7 @@ int main(){
     //string script = "./scripts/middlenebel.nebel";
     //SCRIPTOUT     core->load( script ); //TODO CAll from proxy. If script dont exists ERROR
 
-    LOG( "Core ready!" );
-    std::cout << "Core ready!\n";
+    LOG_COUT( "Core ready!" );
 
     svr.Get("/hi", [](const Request &, Response &res) {
         cout << "hi OK\n";
@@ -116,8 +118,8 @@ int main(){
 
         serverThread.join();
     }
-    LOG( "Main.doQuit!" );
-    LOG( "Finished Middlenebel back-end!");
+    LOG_COUT( "Main.doQuit!" );
+    LOG_COUT( "Finished Middlenebel back-end!");
     std::cout << "Finished Middlenebel back-end!";
     return 0;
 }

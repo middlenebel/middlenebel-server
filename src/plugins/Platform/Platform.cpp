@@ -3,6 +3,7 @@
 #include "../../incPlugins/Platform.hpp"
 #include "../../incPlugins/DockerDesktop.hpp"
 #include "../../incPlugins/K8S.hpp"
+#include "../../inc/Core.hpp"
 
 Platform* platform = nullptr;
 

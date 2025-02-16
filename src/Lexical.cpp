@@ -19,7 +19,6 @@ bool Lexical::load(string file){
     fin.open( file );
     if (!fin.good()){
         cout << "DEBUG error loading " << file <<"\n";
-        LOG( "Lex: Error loading file " << file);
         return false;
     } 
     return true;
@@ -133,7 +132,7 @@ char Lexical::lexGetToken(){
                     }
                     lexLastType = LEX_TYPE_STRING;
                     lexPrevToken = lexLastToken;
-                    //DEBUG LOG(  "LEX String: " << lexLastToken << "\n";
+                    //DEBUG cout << "LEX String: " << lexLastToken << "\n";
                     return LEX_TYPE_STRING; 
                 } else if (lexLastType == LEX_POINT){ // End block
                     lexLastToken = ".";

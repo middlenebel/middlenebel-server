@@ -19,6 +19,8 @@ using cppkafka::Topic;
 using cppkafka::Message;
 using cppkafka::TopicPartitionList;
 
+#define LOG_COUT( A ) ( cout << A << "\n" )
+
 string KafkaConsumer::topic = "purchases";
 string KafkaConsumer::messages;
 bool KafkaConsumer::abort = false;
@@ -26,7 +28,7 @@ bool KafkaConsumer::abort = false;
 KafkaConsumer::KafkaConsumer(){}
 
 void *consumerScheduler (void* caller) {
-    LOG("KafkaConsumer scheduler");
+    LOG_COUT("KafkaConsumer scheduler");
 
     // Construct the configuration
     //string brokers = "localhost:9092";
@@ -44,21 +46,21 @@ void *consumerScheduler (void* caller) {
     // // Print the assigned partitions on assignment
     consumer.set_assignment_callback([](const TopicPartitionList& partitions) {
         //cout << "Got assigned: " << partitions << endl;
-        LOG( "Got assigned!" );
+        LOG_COUT( "Got assigned!" );
     });
 
     // // Print the revoked partitions on revocation
     consumer.set_revocation_callback([](const TopicPartitionList& partitions) {
         //cout << "Got revoked: " << partitions << endl;
-        LOG( "Got revoked!" );
+        LOG_COUT( "Got revoked!" );
     });
 
-    LOG( "Subscribing to topic " + KafkaConsumer::topic );
+    LOG_COUT( "Subscribing to topic " + KafkaConsumer::topic );
 
     // Subscribe to the topic
     consumer.subscribe({ KafkaConsumer::topic });
 
-    LOG( "Consuming messages from topic " + KafkaConsumer::topic );
+    LOG_COUT( "Consuming messages from topic " + KafkaConsumer::topic );
 
     // Now read lines and write them into kafka
     while ( !KafkaConsumer::abort ) {
@@ -67,12 +69,12 @@ void *consumerScheduler (void* caller) {
         //DEBUG( "Polled!" );
 
         if (msg) {
-            //DEBUG LOG( "Message!" );
+            //DEBUG LOG_COUT( "Message!" );
             // If we managed to get a message
             if (msg.get_error()) {
                 // Ignore EOF notifications from rdkafka
                 if (!msg.is_eof()) {
-                    LOG( "[+] Received error notification: " + msg.get_error().to_string() );
+                    LOG_COUT( "[+] Received error notification: " + msg.get_error().to_string() );
                 }
             }
             else {

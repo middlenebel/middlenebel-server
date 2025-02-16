@@ -35,8 +35,8 @@ class NebelComp : public Component{
 
         void parse();
 
-        string doPlay();
-        string doDestroy();
+        void doPlay(std::list<std::string> *cmds);
+        void doDestroy(std::list<std::string> *cmds);
         string doQuit();
 
         string execute( string json );

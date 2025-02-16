@@ -20,6 +20,8 @@ using cppkafka::Configuration;
 using cppkafka::Topic;
 // using cppkafka::MessageBuilder;
 
+#define LOG_COUT( A ) ( cout << A << "\n" )
+
 int KafkaProducer::max = 10;
 int KafkaProducer::sent = 0;
 int KafkaProducer::interval = 1000;
@@ -70,7 +72,7 @@ void KafkaProducer::send( string topic, string message ) {
 }
 
 void *producerScheduler (void* caller) {
-    LOG("KafkaProducer scheduler");
+    LOG_COUT("KafkaProducer scheduler");
     string toReplace = "{{num}}";
     std::size_t pos = KafkaProducer::message.find( toReplace );
     //if (pos == std::string::npos) return;
@@ -97,38 +99,38 @@ void *producerScheduler (void* caller) {
     // Create the producer
     cppkafka::Producer cppProducer(config);
 
-    LOG("Sending max: " + to_string(KafkaProducer::max));
+    LOG_COUT("Sending max: " + to_string(KafkaProducer::max));
     while ( (((num++) < KafkaProducer::max) || (KafkaProducer::max==0)) && !KafkaProducer::abortSend){
-        //DEBUG LOG("Sending num: " + to_string( num ));
+        //DEBUG LOG_COUT("Sending num: " + to_string( num ));
         string newMessage = KafkaProducer::message;
         if (pos!=std::string::npos){        
             string replaceWith = std::to_string(KafkaProducer::sent++);
             newMessage.replace(pos, toReplace.length(), replaceWith);
         }
-        //DEBUG LOG("Payload");
+        //DEBUG LOG_COUT("Payload");
         builder.payload(newMessage);
 
-        //DEBUG LOG("Produce");
+        //DEBUG LOG_COUT("Produce");
         // Actually produce the message we've built
         cppProducer.produce( builder );
 
-        //DEBUG LOG("Flush");
+        //DEBUG LOG_COUT("Flush");
         try{
             cppProducer.flush();
         }catch(...){
-            LOG("Exception in Flush");
+            LOG_COUT("Exception in Flush");
         }
 
-        //DEBUG LOG("Sleeping");
+        //DEBUG LOG_COUT("Sleeping");
         std::this_thread::sleep_for(std::chrono::milliseconds( KafkaProducer::interval ));
-        //DEBUG LOG("End");
+        //DEBUG LOG_COUT("End");
     }
     cppProducer.flush();
     return nullptr;
 }
 
 void KafkaProducer::autoSend( string topic, string message, int max, int interval ) {
-    LOG( "autoSend init");
+    LOG_COUT( "autoSend init");
     KafkaProducer::abortSend = false;
     pthread_t thread1;
     KafkaProducer::max = max;

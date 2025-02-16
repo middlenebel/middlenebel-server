@@ -60,7 +60,6 @@ string K8SService::destroy(){ //TODO rename
           string nameSpace=getAtt(ATT_NAMESPACE, "default");
           string command = (string)"kubectl delete service "+name+" -n "+nameSpace; //+" &";
           result += systemCommandList( command, attributes[ATT_APP], nameSpace, "?" ,"Service "+attributes[ATT_APP] );
-
           LOG( "Destroy service "+attributes[ATT_NAME] );
      }catch(...){
           result = "ERROR K8SService.destroy";

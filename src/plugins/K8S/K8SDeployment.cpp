@@ -57,7 +57,7 @@ string K8SDeployment::apply(){
      return result;
 }
 string K8SDeployment::destroy(){//TODO rename
-     string result = "OK";
+     string result = "";
      try{
           string name=attributes[ATT_NAME];
           string nameSpace=getAtt(ATT_NAMESPACE, "default");

@@ -20,8 +20,8 @@ class MySQL : public Component{
         void parse();
         void parseInitialize();
 
-        string doPlay();
-        string doDestroy();
+        void doPlay(std::list<std::string> *cmds);
+        void doDestroy(std::list<std::string> *cmds);
         string doQuit();
 
         void onLoad();

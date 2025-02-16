@@ -37,6 +37,7 @@
 #include "PortForward.hpp"
 #include "Component.hpp"
 #include "Config.hpp"
+#include "../incPlugins/Platform.hpp"
 
 // Wrappers
 #include "wrappers/HttpServer.hpp"
@@ -49,9 +50,12 @@ using namespace std;
 class Core : public Component{
     private:
         static Core* coreInstance;
+        std::list<string> logStrings;
+
         Core();
 
         void init();
+        Component* loadPlugin4Core(string pluginName);
         /* NOBOOST
         void send_file(beast::string_view target, tcp::socket& socket_);
         void send_bad_response(  http::status status, std::string const& error, tcp::socket& socket_);
@@ -72,9 +76,12 @@ class Core : public Component{
         bool quit;
 
         std::map<string, PortForward*> portForwards;
-        std::list<string> commandList;
+        //DEPRECATED std::list<string> commandList;
 
         static Core* getInstance();
+        void log(string line);
+        string getLog();
+
         Core(Core*) = delete;
         void operator=(const Core &) = delete;
         ~Core();

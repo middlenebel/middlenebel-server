@@ -1,1 +1,3 @@
-//Textfile.txt
+This is a test file.
+Must be not parsed by server.
+But can be loaded and edited in the front.

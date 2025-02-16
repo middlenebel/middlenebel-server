@@ -31,6 +31,7 @@
 #define CONFIG_H
 
 #include "../inc/Component.hpp"
+#include "../inc/ComponentNoCore.hpp"
 #include "../inc/Lexical.hpp"
 
 #define VERSION "Middlenebel v0.1.3-alpha Nebel-Docker"
@@ -82,7 +83,7 @@
     } \
 }
 
-class Config : public Component {
+class Config : public ComponentNoCore {
     private:
         void init();
         std::map<string, Config*> configurations;

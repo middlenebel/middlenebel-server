@@ -233,14 +233,14 @@ string Component::getAtt(string name){
 
 //TODO DEPRECATED
 string Component::systemCommand(string command, string filenaMeOut, string filenaMeErr){
-    LOG("//systemCommand!\n\t" << command << "\n");
+    //DEBUG std::cout << "//systemCommand!\n\t" << command << "\n";
     LOG_FILE("System > " + command, filenaMeOut); 
     LOG_FILE("System > " + command, filenaMeErr);
     command += " >> "+filenaMeOut+" 2>> "+filenaMeErr;
     try{
         system(command.c_str());
     }catch(...){
-        LOG("systemCommand. Exception! ");
+        std::cout << "systemCommand. Exception!\n" << command << "\n";
     }
     return "OK"; //resultCommand;
 }
@@ -310,33 +310,45 @@ string Component::getYamlLabels(){
      return (string) "  labels:\n";
 }
 
+/* doPlay()
+    Devuelve una lista de comandos al sistema por cada componente hijo
+*/
 string Component::doPlay(){
-    //DEBUG cout << "Component::doPlay for "+getAtt(ATT_CLASSNAME) << "\n";
     string result = "";
-    for (std::list<Component*>::iterator child = childs.begin(); child != childs.end(); ++child){
-        result += (*child)->doPlay();
-        result += (std::next(child) != childs.end() ? ",\n" : "\n");
+    std::list<string> cmds;
+    this->doPlay(&cmds);
+    for (std::list<std::string>::iterator cmd = cmds.begin(); cmd != cmds.end(); ++cmd){
+        result += (*cmd);
+        result += (std::next(cmd) != cmds.end() ? ",\n" : "\n");
     }
+    cmds.clear();
     return result;
+}
+
+void Component::doPlay(std::list<std::string> *cmds){
+    for (std::list<Component*>::iterator child = childs.begin(); child != childs.end(); ++child){
+        (*child)->doPlay(cmds);
+    }
 }
 
 string Component::doDestroy(){
     string result = "";
-    for (std::list<Component*>::iterator child = childs.begin(); child != childs.end(); ++child){
-        result += (*child)->doDestroy();
+    std::list<string> cmds;
+    this->doDestroy(&cmds);
+    for (std::list<std::string>::iterator cmd = cmds.begin(); cmd != cmds.end(); ++cmd){
+        result += (*cmd);
+        result += (std::next(cmd) != cmds.end() ? ",\n" : "\n");
     }
-
-    string nameSpace=attributes[ATT_NAMESPACE];
-    if (nameSpace!=""){
-        result += ",";
-        string command = "kubectl delete namespace "+nameSpace;
-        //DEPRECATED result += systemCommand( command );
-        string commandList = systemCommandList( command , "?", nameSpace, "?", "Removed namespace "+nameSpace);
-        result += commandList;
-        LOG( "Destroy namespace "+attributes[ATT_NAME] + ": " + result );
-    }
+    cmds.clear();
     return result;
 }
+
+void Component::doDestroy(std::list<std::string> *cmds){
+    for (std::list<Component*>::iterator child = childs.begin(); child != childs.end(); ++child){
+        (*child)->doDestroy(cmds);
+    }
+}
+
 string Component::doQuit(){
     LOG( attributes[ATT_NAME] + ".doQuit! Childs: " + to_string(childs.size()) + " Plugins: "+ to_string(plugins.size()) );
     string result = (string) "doQuit " + attributes[ATT_NAME]+"\n";
@@ -382,8 +394,9 @@ string Component::systemCommandList( string command , string appName, string nam
             json+=",\"fileContent\":\""+fileContent+"\"";
         }
     json+="}";
-    Core* core = getCore();
-    core->commandList.push_back( json );
+    //DEPRECATED
+    // Core* core = getCore();
+    // core->commandList.push_back( json );
     return json;
 }
 // Use attributes: app, namespace, port
@@ -402,7 +415,7 @@ string Component::startPortForward(PortForward* pf){
     //DEPRECATED systemCommand( command , "portforward.out", "portforward_error.out");
 
     string commandList = systemCommandList( command , pf->appName, pf->nameSpace, pf->port, "Start Port-forward to "+pf->port+" for "+pf->appName);
-    LOG( "PortForward running for "<< pf->appName <<" port "<< pf->port );
+    LOG( "PortForward running for " + pf->appName + " port " + pf->port );
     portForwardInited = true;
     return commandList;
 }
@@ -412,6 +425,6 @@ string Component::stopPortForward(PortForward* pf){
     //DEPRECATED string resultCommand = systemCommand( command , "portforward-stop.out", "portforward-stop_error.out" );
     string commandList = systemCommandList( command , pf->appName, pf->nameSpace, pf->port, "Stopped Port-forward to "+pf->port+" for "+pf->appName);
     //TODO??? portForwardInited = false;
-    LOG( "PortForward stoped! for " << pf->appName );
+    LOG( "PortForward stoped! for " + pf->appName );
     return commandList;
 }

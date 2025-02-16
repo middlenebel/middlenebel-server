@@ -47,7 +47,7 @@ void NebelComp::parse(){
     string value="";
     // Core* core = (Core*) getRootComponent( this );
     while ( readToken() ){
-        //DEBUG LOG( "NebelComp TOKEN: " << token );
+        //DEBUG LOG( "NebelComp TOKEN: " + token );
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
@@ -56,7 +56,7 @@ void NebelComp::parse(){
         else if (isToken( TK_Class )){ parseClass(); } 
         else if (isToken( TK_System )){ parseSystem(); } 
         else if ( !parsedName && token.compare( "" ) != 0 ){ // Gets the name of component
-            LOG( "NebelComp " << token );
+            LOG( "NebelComp " + token );
             attributes[ATT_NAME] = token;
             parsedName = true;
         } else PARSE_ATT_KEY_TOKEN(attributes, key, token);
@@ -71,7 +71,7 @@ void NebelComp::parseExecutor(){
     string key="", value="";
     Core* core = (Core*) getRootComponent( this );
     while ( readToken() ){
-        //DEBUG LOG( "\NebelComp TOKEN: " << token );
+        //DEBUG LOG( "\NebelComp TOKEN: " + token );
 
         if (isBlanc()) { SEG_SHOW_BLANC(); }
         else if (isToken( TK_POINT )){ return; }
@@ -86,7 +86,7 @@ void NebelComp::parseExecutor(){
             name = token;
             parsedName = true;
         }else if ( !parsedLibrary && token.compare( "" ) != 0 ){ // Gets the name of library
-            LOG( "Action executor " << name << " library " << token );
+            LOG( "Action executor " + name + " library " + token );
             // core->executors[name] = this; 
             this->actions[ name ] = token;
             parsedLibrary = true;
@@ -141,11 +141,11 @@ int NebelComp::getObjectNum(){
     return n;
 }
 
-string NebelComp::doPlay(){
-    return "OK";
+void NebelComp::doPlay(std::list<std::string> *cmds){
+    Component::doDestroy(cmds);
 }
-string NebelComp::doDestroy(){
-    return Component::doDestroy();
+void NebelComp::doDestroy(std::list<std::string> *cmds){
+    Component::doDestroy(cmds);
 }
 string NebelComp::doQuit(){
     return Component::doQuit();
@@ -171,7 +171,7 @@ string NebelComp::execute( string json ){
     string library = actions[ actionStr ];
 
     //DEBUG 
-    LOG(  "NebelComp action " << actionStr << " -> " << library);
+    LOG(  "NebelComp action " + actionStr + " -> " + library);
 
     if (actionStr=="DoNothing"){
         LOG( "NebelComp: DoNothing OK!");
